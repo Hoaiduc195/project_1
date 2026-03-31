@@ -2,7 +2,7 @@ from gaussian import gaussian_eliminate
 
 def determinant(A):
     n = len(A)
-    # Chỉ có ma trận vuông mới có định thức
+    # only square matrices have det
     if n == 0 or n != len(A[0]): return None
     
     b = [[] for _ in range(n)]

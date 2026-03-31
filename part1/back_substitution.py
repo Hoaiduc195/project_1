@@ -13,115 +13,136 @@ class Expression:
             self.mp[self.__bias] = nums[-1] 
 
     def __add__(self, other):
+        new_expr = Expression()
+        new_expr.mp = {}
+        
         if isinstance(other, Expression):
-            newmp = {}
             vars = set()
             for k in other.mp.keys(): vars.add(k)
             for k in self.mp.keys(): vars.add(k)
 
             for var in vars:
-                newmp[var] = 0.0
+                new_expr.mp[var] = 0.0
                 if var in self.mp:
-                    newmp[var] += self.mp[var]
+                    new_expr.mp[var] += self.mp[var]
                 if var in other.mp:
-                    newmp[var] += other.mp[var]
+                    new_expr.mp[var] += other.mp[var]
 
-            for k, v in list(newmp.items()):
+            for k, v in list(new_expr.mp.items()):
                 if v == 0:
-                    del newmp[k]
-            self.mp = newmp
+                    del new_expr.mp[k]
         elif isinstance(other, (float, int)):
-            if self.__bias not in self.mp:
-                self.mp[self.__bias] = float(other)
-            else: self.mp[self.__bias] += float(other)
-        elif isinstance(other, str):  # consider string as a new var
-            if other in self.mp:
-                self.mp[other] += 1.0
-            else: self.mp[other] = 1.0
+            new_expr.mp = self.mp.copy()
+            if self.__bias not in new_expr.mp:
+                new_expr.mp[self.__bias] = float(other)
+            else: 
+                new_expr.mp[self.__bias] += float(other)
+        elif isinstance(other, str):
+            new_expr.mp = self.mp.copy()
+            if other in new_expr.mp:
+                new_expr.mp[other] += 1.0
+            else: 
+                new_expr.mp[other] = 1.0
         
-        return self
+        return new_expr
 
     def __sub__(self, other):
+        new_expr = Expression()
+        new_expr.mp = {}
+        
         if isinstance(other, Expression):
-            newmp = {}
             vars = set()
             for k in other.mp.keys(): vars.add(k)
             for k in self.mp.keys(): vars.add(k)
 
             for var in vars:
-                newmp[var] = 0.0
+                new_expr.mp[var] = 0.0
                 if var in self.mp:
-                    newmp[var] += self.mp[var]
+                    new_expr.mp[var] += self.mp[var]
                 if var in other.mp:
-                    newmp[var] -= other.mp[var]
+                    new_expr.mp[var] -= other.mp[var]
 
-            for k, v in list(newmp.items()):
+            for k, v in list(new_expr.mp.items()):
                 if v == 0:
-                    del newmp[k]
-            self.mp = newmp
+                    del new_expr.mp[k]
         elif isinstance(other, (float, int)):
-            if self.__bias not in self.mp:
-                self.mp[self.__bias] = -float(other)
-            else: self.mp[self.__bias] -= float(other)
+            new_expr.mp = self.mp.copy()
+            if self.__bias not in new_expr.mp:
+                new_expr.mp[self.__bias] = -float(other)
+            else: 
+                new_expr.mp[self.__bias] -= float(other)
         elif isinstance(other, str):
-            if other in self.mp:
-                self.mp[other] -= 1.0
-            else: self.mp[other] = -1.0
+            new_expr.mp = self.mp.copy()
+            if other in new_expr.mp:
+                new_expr.mp[other] -= 1.0
+            else: 
+                new_expr.mp[other] = -1.0
         
-        return self
+        return new_expr
 
     def __mul__(self, other):
         if isinstance(other, (float, int)):
             scalar = float(other)
+            # Create a new Expression to avoid modifying in-place
+            new_expr = Expression()
+            new_expr.mp = {}
             for k in self.mp:
-                self.mp[k] *= scalar
+                new_expr.mp[k] = self.mp[k] * scalar
+            return new_expr
         else:
             raise TypeError("Only scalar multiplication supported")
-        
-        return self
 
     def __truediv__(self, other):
         if isinstance(other, (float, int)):
             scalar = float(other)
             if scalar == 0:
                 raise ValueError("Division by zero")
+            # Create a new Expression to avoid modifying in-place
+            new_expr = Expression()
+            new_expr.mp = {}
             for k in self.mp:
-                self.mp[k] /= scalar
+                new_expr.mp[k] = self.mp[k] / scalar
+            return new_expr
         else:
             raise TypeError("Only scalar division supported")
-        
-        return self
     
     def __str__(self):
         ans = ''
         tokens = []
+        # Build tokens as (sign, term_string) pairs
         for k, v in self.mp.items():
             if k == self.__bias:
                 continue
             if abs(v) != 1.0:
-                tokens.append(str(v) + k) 
+                tokens.append((v, str(abs(v)) + k)) 
             else:
-                if v == -1.0:
-                    tokens.append('-' + k)
-                else: tokens.append(k)
+                tokens.append((v, k))
         
-        
-        for i in range(len(tokens)): 
+        # Format with consistent spacing around + and -
+        for i, (sign, term) in enumerate(tokens):
             if i == 0:
-                ans += tokens[i]
+                if sign < 0:
+                    ans += '- ' + term
+                else:
+                    ans += term
             else:
-                if tokens[i][0] == '-':
-                    ans += tokens[i]
-                else: 
-                    ans += ' + ' + tokens[i]
+                if sign < 0:
+                    ans += ' - ' + term
+                else:
+                    ans += ' + ' + term
             
         if self.__bias in self.mp:
             bias_val = self.mp[self.__bias]
             if bias_val >= 0 and ans:
                 ans += ' + ' + str(bias_val)
+            elif bias_val < 0 and ans:
+                ans += ' - ' + str(abs(bias_val))
             else:
                 ans += str(bias_val)
-
+        elif not tokens:
+            # No variables and no bias - this represents 0
+            ans = '0'
+        
         return ans
 
 
@@ -132,25 +153,62 @@ def back_substitution(U, c):
             return []
         return [[Expression() for _ in range(len(c[0]))] for _ in range(len(U))]
     
-    n = len(U)
+    n = len(U)  # number of rows (equations)
     if not c or len(c[0]) == 0:
         return []
     
+    m = len(U[0]) if U else 0  # number of columns (variables)
     num_c = len(c[0])
-    x = [[Expression() for _ in range(num_c)] for _ in range(n)]
+    
+    num_vars = m
+    num_eqs = n
+    x = [[Expression() for _ in range(num_c)] for _ in range(num_vars)]
+    
+    # Find pivot columns (columns with leading non-zero in row k)
+    pivot_cols = []
+    pivot_row = {}
+    for k in range(min(num_eqs, num_vars)):
+        for j in range(num_vars):
+            if abs(U[k][j]) > 1e-10:
+                if j not in pivot_cols:
+                    pivot_cols.append(j)
+                    pivot_row[j] = k
+                    break
+    
+    # Free variables are those not in pivot_cols
+    free_vars = [j for j in range(num_vars) if j not in pivot_cols]
     
     for p in range(num_c):
-        for k in range(n-1, -1, -1):
-            r = Expression(c[k][p:p+1], []) if isinstance(c[k][p], (int, float)) else c[k][p]
-            for u in range(k+1, n):
-                r = r - (x[u][p] * U[k][u])
-            if U[k][k] == 0:
-                if isinstance(r, Expression) and not r.mp:
-                    continue
-                else: 
-                    return None
-            x[k][p] = r / U[k][k]
+        # Initialize free variables as symbols
+        for j in free_vars:
+            var_name = f"t{j}"  # Parameter for free variable
+            x[j][p] = Expression([1.0], [var_name])
+        
+        # Back substitution for pivot variables
+        for col in reversed(pivot_cols):
+            k = pivot_row[col]
             
+            # Create RHS
+            if isinstance(c[k][p], (int, float)):
+                r = Expression([float(c[k][p])], [])  
+            else:
+                r = c[k][p]  
+            
+            # Subtract all other terms (both pivot and free variables)
+            for j in range(num_vars):
+                if j != col:
+                    r = r - (x[j][p] * U[k][j])
+            
+            # Solve for pivot variable
+            if abs(U[k][col]) > 1e-10:
+                x[col][p] = r / U[k][col]
+        
+        # Check for inconsistency
+        for k in range(num_eqs):
+            all_zero = all(abs(U[k][j]) < 1e-10 for j in range(num_vars))
+            if all_zero and abs(c[k][p]) > 1e-10:
+                return None  # Inconsistent system
+    
     if num_c == 1:
         return [x_row[0] for x_row in x]
     return x

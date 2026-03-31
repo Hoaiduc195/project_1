@@ -11,12 +11,16 @@ def rank_and_basis(A):
     row_basis = []
     col_basis_idx = []
     
-    for r in range(min(nr, nc)):
-        if abs(res[r][r]) > 1e-9:
-            rank += 1
-            row_basis.append(res[r][:nc])
-            col_basis_idx.append(r)
+    # Check pivot columns in the result matrix
+    for r in range(len(res)):  # Use actual number of rows in res after filtering
+        for c in range(min(len(res[r]), nc)):
+            if abs(res[r][c]) > 1e-9:  # Found pivot in this row
+                rank = r + 1
+                row_basis.append(res[r][:nc])
+                col_basis_idx.append(c)
+                break
             
+    # Extract column basis from original matrix
     col_basis = [[A[row][i] for row in range(nr)] for i in col_basis_idx]
 
     return rank, row_basis, col_basis
