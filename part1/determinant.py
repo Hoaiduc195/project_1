@@ -1,0 +1,17 @@
+from gaussian import gaussian_eliminate
+
+def determinant(A):
+    n = len(A)
+    # Chỉ có ma trận vuông mới có định thức
+    if n == 0 or n != len(A[0]): return None
+    
+    b = [[] for _ in range(n)]
+    
+    res, _, num_swaps = gaussian_eliminate(A, b)
+    det = 1.0
+    
+    for i in range(min(n, len(res[0]))):
+        det *= res[i][i]
+    if num_swaps % 2 == 1:
+        det = -det
+    return det
