@@ -13,7 +13,7 @@ def inverse(A):
         while max_idx < nr and aug[max_idx][k] == 0:
             max_idx += 1
         if max_idx == nr:
-            return None # singular
+            return None
         for u in range(max_idx, nr):
             if abs(aug[u][k]) > abs(aug[max_idx][k]):
                 max_idx = u
