@@ -129,10 +129,7 @@ def gaussian_eliminate_formatter(U, x, num_swaps):
     print("-" * 40)
     if x:
         for i, val in enumerate(x):
-            if hasattr(val, 'mp'):  # Expression object
-                print(f"x[{i}] = {val}")
-            else:  # Float or other type
-                print(f"x[{i}] = {val}")
+            print(f"x[{i}] = {val}")
     else:
         print("No solution")
     
@@ -142,8 +139,8 @@ def gaussian_eliminate_formatter(U, x, num_swaps):
 
 
 def main():
-    A = [[1.0, 2.0, 3.0], [1.0, 2.0, 4.0], [1.0, 2.0, 4.0]]
-    U, x, num_swaps = gaussian_eliminate(A, [1, 2, 2])
+    A = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+    U, x, num_swaps = gaussian_eliminate(A, [0, 0, 0])
     gaussian_eliminate_formatter(U, x, num_swaps)
     
 if __name__ == "__main__":

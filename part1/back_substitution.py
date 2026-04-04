@@ -83,7 +83,6 @@ class Expression:
     def __mul__(self, other):
         if isinstance(other, (float, int)):
             scalar = float(other)
-            # Create a new Expression to avoid modifying in-place
             new_expr = Expression()
             new_expr.mp = {}
             for k in self.mp:
@@ -109,7 +108,6 @@ class Expression:
     def __str__(self):
         ans = ''
         tokens = []
-        # Build tokens as (sign, term_string) pairs
         for k, v in self.mp.items():
             if k == self.__bias:
                 continue
@@ -118,7 +116,6 @@ class Expression:
             else:
                 tokens.append((v, k))
         
-        # Format with consistent spacing around + and -
         for i, (sign, term) in enumerate(tokens):
             if i == 0:
                 if sign < 0:
