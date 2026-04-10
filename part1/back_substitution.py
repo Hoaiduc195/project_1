@@ -1,151 +1,93 @@
 class Expression:
-    def __init__(self, nums=[], var = []):
+    BIAS = "__const__"
+
+    def __init__(self, nums=None, var=None):
+        nums = nums or []
+        var = var or []
+
+        if len(nums) not in (len(var), len(var) + 1):
+            raise ValueError("Invalid number of coefficients")
+
         self.mp = {}
-        if len(nums) > len(var) + 1 or len(nums) < len(var):
-            return RuntimeError
-    
-        self.__bias = 'bias'
-        for i in range(len(var)):
-            self.mp[var[i]] = float(nums[i])
-        
-        # handle bias
+
+        for i, v in enumerate(var):
+            self.mp[v] = float(nums[i])
+
         if len(nums) == len(var) + 1:
-            self.mp[self.__bias] = nums[-1] 
+            self.mp[self.BIAS] = float(nums[-1])
+
+    def _combine(self, other, sign=1):
+        result = Expression()
+        result.mp = self.mp.copy()
+
+        for k, v in other.mp.items():
+            result.mp[k] = result.mp.get(k, 0.0) + sign * v
+
+        # remove near-zero terms
+        result.mp = {k: v for k, v in result.mp.items() if abs(v) > 1e-12}
+        return result
 
     def __add__(self, other):
-        new_expr = Expression()
-        new_expr.mp = {}
-        
         if isinstance(other, Expression):
-            vars = set()
-            for k in other.mp.keys(): vars.add(k)
-            for k in self.mp.keys(): vars.add(k)
-
-            for var in vars:
-                new_expr.mp[var] = 0.0
-                if var in self.mp:
-                    new_expr.mp[var] += self.mp[var]
-                if var in other.mp:
-                    new_expr.mp[var] += other.mp[var]
-
-            for k, v in list(new_expr.mp.items()):
-                if v == 0:
-                    del new_expr.mp[k]
-        elif isinstance(other, (float, int)):
-            new_expr.mp = self.mp.copy()
-            if self.__bias not in new_expr.mp:
-                new_expr.mp[self.__bias] = float(other)
-            else: 
-                new_expr.mp[self.__bias] += float(other)
+            return self._combine(other, +1)
+        elif isinstance(other, (int, float)):
+            return self._combine(Expression([other], []), +1)
         elif isinstance(other, str):
-            new_expr.mp = self.mp.copy()
-            if other in new_expr.mp:
-                new_expr.mp[other] += 1.0
-            else: 
-                new_expr.mp[other] = 1.0
-        
-        return new_expr
+            return self._combine(Expression([1], [other]), +1)
+        return NotImplemented
 
     def __sub__(self, other):
-        new_expr = Expression()
-        new_expr.mp = {}
-        
         if isinstance(other, Expression):
-            vars = set()
-            for k in other.mp.keys(): vars.add(k)
-            for k in self.mp.keys(): vars.add(k)
-
-            for var in vars:
-                new_expr.mp[var] = 0.0
-                if var in self.mp:
-                    new_expr.mp[var] += self.mp[var]
-                if var in other.mp:
-                    new_expr.mp[var] -= other.mp[var]
-
-            for k, v in list(new_expr.mp.items()):
-                if v == 0:
-                    del new_expr.mp[k]
-        elif isinstance(other, (float, int)):
-            new_expr.mp = self.mp.copy()
-            if self.__bias not in new_expr.mp:
-                new_expr.mp[self.__bias] = -float(other)
-            else: 
-                new_expr.mp[self.__bias] -= float(other)
+            return self._combine(other, -1)
+        elif isinstance(other, (int, float)):
+            return self._combine(Expression([other], []), -1)
         elif isinstance(other, str):
-            new_expr.mp = self.mp.copy()
-            if other in new_expr.mp:
-                new_expr.mp[other] -= 1.0
-            else: 
-                new_expr.mp[other] = -1.0
-        
-        return new_expr
+            return self._combine(Expression([1], [other]), -1)
+        return NotImplemented
 
     def __mul__(self, other):
-        if isinstance(other, (float, int)):
-            scalar = float(other)
-            new_expr = Expression()
-            new_expr.mp = {}
-            for k in self.mp:
-                new_expr.mp[k] = self.mp[k] * scalar
-            return new_expr
-        else:
-            raise TypeError("Only scalar multiplication supported")
+        if isinstance(other, (int, float)):
+            result = Expression()
+            result.mp = {k: v * other for k, v in self.mp.items()}
+            return result
+        return NotImplemented
+
+    def __rmul__(self, other):
+        return self * other
 
     def __truediv__(self, other):
-        if isinstance(other, (float, int)):
-            scalar = float(other)
-            if scalar == 0:
+        if isinstance(other, (int, float)):
+            if abs(other) < 1e-12:
                 raise ValueError("Division by zero")
-            # Create a new Expression to avoid modifying in-place
-            new_expr = Expression()
-            new_expr.mp = {}
-            for k in self.mp:
-                new_expr.mp[k] = self.mp[k] / scalar
-            return new_expr
-        else:
-            raise TypeError("Only scalar division supported")
-    
-    def __str__(self):
-        ans = ''
-        tokens = []
-        for k, v in self.mp.items():
-            if k == self.__bias:
-                continue
-            if abs(v) != 1.0:
-                tokens.append((v, str(abs(v)) + k)) 
-            else:
-                tokens.append((v, k))
-        
-        for i, (sign, term) in enumerate(tokens):
-            if i == 0:
-                if sign < 0:
-                    ans += '- ' + term
-                else:
-                    ans += term
-            else:
-                if sign < 0:
-                    ans += ' - ' + term
-                else:
-                    ans += ' + ' + term
-            
-        if self.__bias in self.mp:
-            bias_val = self.mp[self.__bias]
-            if bias_val >= 0 and ans:
-                ans += ' + ' + str(bias_val)
-            elif bias_val < 0 and ans:
-                ans += ' - ' + str(abs(bias_val))
-            else:
-                ans += str(bias_val)
-        elif not tokens:
-            # No variables and no bias - this represents 0
-            ans = '0'
-        
-        return ans
+            return self * (1.0 / other)
+        return NotImplemented
 
+    def __str__(self):
+        terms = []
+        for k in sorted(self.mp.keys()):
+            if k == self.BIAS:
+                continue
+            v = self.mp[k]
+            coef = "" if abs(v) == 1 else str(abs(v))
+            term = coef + k
+
+            if not terms:
+                terms.append(term if v > 0 else "- " + term)
+            else:
+                terms.append((" + " if v > 0 else " - ") + term)
+
+        if self.BIAS in self.mp:
+            v = self.mp[self.BIAS]
+            if terms:
+                terms.append((" + " if v >= 0 else " - ") + str(abs(v)))
+            else:
+                terms.append(str(v))
+
+        return "".join(terms) if terms else "0"
 
 def back_substitution(U, c):
     if not U: 
-        # Return empty matrix of Expressions
+        # return empty matrix of Expresssio
         if not c or len(c[0]) == 0:
             return []
         return [[Expression() for _ in range(len(c[0]))] for _ in range(len(U))]
