@@ -1,5 +1,4 @@
 .venv
 *.mp4
-*.pdf
 __pycache__
 test*
