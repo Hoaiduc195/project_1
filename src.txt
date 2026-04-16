@@ -1,0 +1,120 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
+\usepackage[a4paper,left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{setspace}
+\usepackage{tocloft}
+\usepackage{amsmath, amssymb} 
+\usepackage[colorlinks=true, linkcolor=black, urlcolor=blue]{hyperref}
+\usepackage{enumitem}
+
+% Cấu hình khoảng cách dòng 1.5
+\onehalfspacing 
+
+% ĐỊNH DẠNG SỐ THỨ TỰ: II -> 1 -> 1.1 -> 1.1.1
+\renewcommand{\thesection}{\Roman{section}} 
+\renewcommand{\thesubsection}{\arabic{subsection}} 
+\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
+
+% Tạo và ép đánh số cho subsubsubsection (cấp độ paragraph)
+\makeatletter
+\newcommand\subsubsubsection{\@startsection{paragraph}{4}{\z@}%
+    {-3.25ex \@plus -1ex \@minus -.2ex}%
+    {1.5ex \@plus .2ex}%
+    {\normalfont\normalsize\bfseries}}
+\makeatother
+\renewcommand{\theparagraph}{\thesubsubsection.\arabic{paragraph}}
+
+% Quan trọng: Để hiện số 1.1.1 ở tiêu đề và mục lục
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+
+\renewcommand{\cftsecdotsep}{\cftdotsep} 
+\renewcommand{\refname}{} 
+
+\begin{document}
+
+% --- TRANG BÌA ---
+\begin{titlepage}
+    \begin{tikzpicture}[remember picture, overlay]
+        \draw [line width=1pt] ([shift={(1.5cm,-1.5cm)}]current page.north west) rectangle ([shift={(-1.5cm,1.5cm)}]current page.south east);
+        \draw [line width=2pt] ([shift={(1.65cm,-1.65cm)}]current page.north west) rectangle ([shift={(-1.65cm,1.65cm)}]current page.south east);
+    \end{tikzpicture}
+    \begin{center}
+        \large \textbf{ĐẠI HỌC QUỐC GIA THÀNH PHỐ HỒ CHÍ MINH} \\
+        \large \textbf{TRƯỜNG ĐẠI HỌC KHOA HỌC TỰ NHIÊN} \\
+        \large \textbf{KHOA: CÔNG NGHỆ THÔNG TIN} \\
+        \vspace{1.5cm} {\huge +} \vspace{0.5cm}
+        \begin{center} \includegraphics[width=0.35\textwidth]{hcmus.png} \end{center}
+        \vspace{1.5cm}
+        \Large \textbf{BÁO CÁO ĐỒ ÁN THỰC HÀNH} \\
+        \Large \textbf{MÔN TOÁN ỨNG DỤNG VÀ THỐNG KÊ}
+        \vspace{2.5cm}
+        \large \underline{\textbf{NHÓM THỰC HIỆN:}} \\
+        \vspace{0.3cm}
+        \large \textbf{MSSV:} 20120087 – \textbf{HỌ TÊN:} Phạm Đình Tiểu Long \\
+        \large \textbf{MSSV:} 20120043 – \textbf{HỌ TÊN:} Nguyễn Công Dũng \\
+        \large \textbf{MSSV:} 20120094 – \textbf{HỌ TÊN:} Mai Anh Phúc Minh \\
+        \vfill
+        \large \textbf{Giảng viên lý thuyết:} Huỳnh Thụy Bảo Trân \\
+        \large \textbf{Lớp lý thuyết/Nhóm thực hành:} 24CTT3/24CTT3 \\
+        \large \textbf{Học kỳ - Niên khoá:} HK2 - 2025-2026
+        \vspace{1cm}
+    \end{center}
+\end{titlepage}
+
+% --- TRANG MỤC LỤC ---
+\newpage
+\begin{center}
+    \renewcommand{\contentsname}{\Huge \underline{MỤC LỤC}}
+    \tableofcontents
+\end{center}
+\newpage
+
+% --- NỘI DUNG ---
+\setcounter{page}{3}
+\section{THÔNG TIN THÀNH VIÊN}
+Nội dung...
+
+\section{NỘI DUNG}
+
+\subsection{Phần 1: Phép khử Gauss và Các Ứng Dụng}
+\subsubsection{Cơ Sở Lý Thuyết}
+
+\subsubsubsection{Phương pháp khử Gauss và Gauss--Jordan}
+Xét hệ phương trình tuyến tính $\mathbf{Ax} = \mathbf{b}$ với $\mathbf{A} \in \mathbb{R}^{m \times n}, \mathbf{x} \in \mathbb{R}^n, \mathbf{b} \in \mathbb{R}^m$.
+
+\subsubsubsection{Khử Gauss có chọn phần tử chốt (Partial Pivoting)}
+\textbf{Định lý 1.1} (Partial Pivoting). Tại bước khử thứ $k$, chọn hàng $p$ sao cho:
+\begin{equation}
+\left| a_{pk}^{(k)} \right| = \max_{k \le i \le n} \left| a_{ik}^{(k)} \right|
+\end{equation}
+
+\subsubsubsection{Hạng Ma Trận và Cơ Sở}
+\textbf{Định nghĩa 1.5}. Hạng ($\text{rank}$) của ma trận $\mathbf{A}$...
+
+\subsection{Phần 2: Phân Rã Ma Trận và Trực Quan Hóa}
+\subsubsection{Chéo Hóa Ma Trận}
+\begin{equation}
+\mathbf{A} = \mathbf{PDP}^{-1}, \quad \mathbf{D} = \text{diag}(\lambda_1, \dots, \lambda_n)
+\end{equation}
+
+\subsection{Phần 3: Giải Hệ Phương Trình và Hiệu Năng}
+\subsubsection{Lý Thuyết Sai Số}
+\subsubsubsection{Số Điều Kiện (Condition Number)}
+\begin{equation}
+\kappa_p(\mathbf{A}) = \|\mathbf{A}\|_p \cdot \|\mathbf{A}^{-1}\|_p
+\end{equation}
+
+% --- TÀI LIỆU THAM KHẢO ---
+\newpage
+\section{TÀI LIỆU THAM KHẢO}
+\begin{enumerate}[label={[\arabic*]}, leftmargin=1.5cm]
+    \item Gilbert Strang. \textit{Introduction to Linear Algebra}, 6th ed. 2023.
+    \item Lloyd N. Trefethen \& David Bau III. \textit{Numerical Linear Algebra}. 1997.
+    \item \url{https://www.mathworks.com/moler/chapters.html}
+\end{enumerate}
+
+\end{document}
