@@ -1,5 +1,7 @@
 from gaussian import build_augmented_matrix, swap_row, add_row, mul_row
 
+EPS = 1e-10
+
 def inverse(A):
     """
     Compute the inverse of a square matrix A using Gauss-Jordan elimination.
@@ -19,7 +21,7 @@ def inverse(A):
         max_row = max(range(k, n), key=lambda i: abs(aug[i][k]))        
         
         # check if matrix is singular
-        if abs(aug[max_row][k]) < 1e-12:
+        if abs(aug[max_row][k]) < EPS:
             return None
         
         # swap rows if needed
@@ -33,6 +35,12 @@ def inverse(A):
             if i != k:
                 factor = aug[i][k]
                 aug[i] = [aug[i][j] - factor * aug[k][j] for j in range(2 * n)]
-
     
     return [row[n:] for row in aug]
+
+
+def main():
+    pass
+
+if __name__ == "__main__":
+    main()

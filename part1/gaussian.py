@@ -1,29 +1,21 @@
 import numpy as np
 from back_substitution import Expression, back_substitution
+from utils import swap_row, mul_row, add_row, build_augmented_matrix
 
-
-# Helper functions for gaussian_eliminate()
-###
-def swap_row(A, i, j):
-    if i != j:
-        A[i], A[j] = A[j], A[i]
-
-def mul_row(A, i, c):
-    for k in range(len(A[i])):
-        A[i][k] *= c
-
-def add_row(A, c, j, i):
-    for k in range(len(A[i])):
-        A[i][k] += A[j][k] * c
-
-def build_augmented_matrix(A, b):
-    aug = [row[:] for row in A]
-    for i in range(len(A)):
-        aug[i].extend(b[i][:])
-    return aug
-###
+EPS = 1e-10
 
 def gaussian_eliminate(A, b=None):
+    """
+    Perform Gaussian elimination on matrix ``A`` with optional right-
+    hand side ``b``.\n
+    Returns a tuple ``(U, x, num_swaps)`` where ``U`` is
+    the filtered upper-triangular matrix, ``x`` contains solved
+    `Expression` objects (or empty), and ``num_swaps`` is the count of row
+    swaps performed.\n
+    If the system is inconsistent returns ``(None, None,
+    swaps)``.
+    """
+    
     if not A: 
         # return matrix of Expression if A is empty
         return [], [[Expression()]], 0
@@ -31,26 +23,26 @@ def gaussian_eliminate(A, b=None):
     nr = len(A)
     nc = len(A[0])
     
-    # Handle b parameter: convert 1D to 2D if needed
+    # convert b from 1D to 2D if needed
     if b is None:
         b = [[] for _ in range(nr)]
     elif b and isinstance(b[0], (int, float)):
-        # b is 1D array like [0, 0, 0], convert to [[0], [0], [0]]
         b = [[val] for val in b]
     elif not b or len(b[0]) == 0:
         b = [[] for _ in range(nr)]
-        
+          
     aug = build_augmented_matrix(A, b)
     a_cols = nc
     num_swaps = 0
     
     pivot_row = 0
+
     for k in range(a_cols):
         if pivot_row >= nr:
             break
         # find largest pivot in column k
         max_idx = pivot_row
-        while max_idx < nr and aug[max_idx][k] == 0:
+        while max_idx < nr and abs(aug[max_idx][k]) < EPS:
             max_idx += 1
 
         if max_idx == nr:
@@ -64,7 +56,7 @@ def gaussian_eliminate(A, b=None):
             num_swaps += 1
         # eliminate all rows below pivot_row
         for u in range(pivot_row + 1, nr):
-            if aug[pivot_row][k] != 0:
+            if abs(aug[pivot_row][k]) > EPS:
                 q = float(aug[u][k]) / aug[pivot_row][k]
                 add_row(aug, -q, pivot_row, u)
         pivot_row += 1
@@ -75,8 +67,8 @@ def gaussian_eliminate(A, b=None):
         coeff_part = row[:a_cols]
         rhs_part = row[a_cols:]
         
-        if all(abs(v) < 1e-10 for v in coeff_part):
-            if any(abs(v) > 1e-10 for v in rhs_part):
+        if all(abs(v) < EPS for v in coeff_part):
+            if any(abs(v) > EPS for v in rhs_part):
                 return None, None, num_swaps  # inconsistent
             continue
         filtered_aug.append(row)
@@ -89,105 +81,102 @@ def gaussian_eliminate(A, b=None):
     
     return U, x, num_swaps
 
-
-
-
-def _to_float(v):
-    if isinstance(v, Expression):
-        if any(k != Expression.BIAS for k in v.mp):
-            raise ValueError("Symbolic expression")
-        return float(v.mp.get(Expression.BIAS, 0.0))
-    return float(v)
-
-def _to_np(mat):
-    if mat is None: raise ValueError
-    if isinstance(mat, np.ndarray): return mat.astype(float)
-    if not mat: return np.empty((0, 0), dtype=float)
-    if isinstance(mat[0], (list, tuple)):
-        return np.array([[_to_float(v) for v in row] for row in mat], dtype=float)
-    return np.array([_to_float(v) for v in mat], dtype=float)
-
-def verify_solution(A, x, b):
-    """Verify determinant, inverse, rank, and gaussian_eliminate against NumPy."""
-    from determinant import determinant
-    from inverse import inverse
-    from rank_basis import rank_and_basis
-
-    A_np = _to_np(A)
-    n, m = A_np.shape
-    results = {}
-
-    # Check determinant & inverse (square only)
-    if n == m:
-        try:
-            results["det_ok"] = np.isclose(determinant(A), np.linalg.det(A_np), atol=1e-8, rtol=1e-6)
-        except: results["det_ok"] = False
-        try:
-            inv = inverse(A)
-            results["inv_ok"] = (np.linalg.matrix_rank(A_np) < n) if inv is None else np.allclose(_to_np(inv), np.linalg.inv(A_np), atol=1e-8)
-        except: results["inv_ok"] = False
-
-    # Check rank
-    try:
-        r, _, _, _ = rank_and_basis(A)
-        results["rank_ok"] = (r == np.linalg.matrix_rank(A_np))
-    except: results["rank_ok"] = False
-
-    # Check gaussian_eliminate
-    try:
-        _, x_calc, _ = gaussian_eliminate(A, b)
-        x_np = _to_np(x_calc).reshape(-1, 1) if _to_np(x_calc).ndim == 1 else _to_np(x_calc)
-        b_np = _to_np(b).reshape(-1, 1) if _to_np(b).ndim == 1 else _to_np(b)
-        results["gauss_ok"] = np.allclose(A_np @ x_np, b_np, atol=1e-8)
-    except: results["gauss_ok"] = None
-
-    return results
-
-
-def print_matrix(mat):
-    for row in mat:
-        print(["{:.4f}".format(v) for v in row])
-
-
-def gaussian_eliminate_formatter(U, x, num_swaps):
-    """
-    Formats the gaussian_eliminate() result
-    """
-    
-    # print upper triangle matrix
-    print("\nUpper Triangle Matrix U:")
-    print("-" * 40)
-    if U:
-        for i, row in enumerate(U):
-            row_str = "["
-            for j, val in enumerate(row):
-                if isinstance(val, float):
-                    row_str += f"{val:10.4f}"
-                else:
-                    row_str += f"{str(val):>10}"
-                if j < len(row) - 1:
-                    row_str += ", "
-            row_str += "]"
-            print(row_str)
-    else:
-        print("Empty matrix")
-    
-    # print solution vector
-    print("\nSolution Vector x:")
-    print("-" * 40)
-    if x:
-        for i, val in enumerate(x):
-            print(f"x[{i}] = {val}")
-    else:
-        print("No solution")
-    
-    # print number of swaps
-    print(f"\nNumber of Row Swaps: {num_swaps}")
-
 def main():
-    A = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-    U, x, num_swaps = gaussian_eliminate(A, [0, 0, 0])
-    gaussian_eliminate_formatter(U, x, num_swaps)
+    test_cases_A = [
+    [[0, 2], [3, -1]],
+    [[1, 1], [1, -1], [2, 1]],
+    [[1, 2, 3], [2, -1, 1]],
+    [[1e-4, 1], [1, 1]]
+    ]
+
+    test_cases_b = [
+    [[4], [5]],
+    [[2], [0], [5]],
+    [[4], [5]],
+    [[1], [2]]
+    ]
+
+    def expr_to_numeric(e):
+        if not isinstance(e, Expression):
+            return e
+        keys = list(e.mp.keys())
+        if not keys:
+            return 0.0
+        if len(keys) == 1 and Expression.BIAS in e.mp:
+            return float(e.mp[Expression.BIAS])
+        return None
+
+    def run_list(cases, group_name):
+        if not cases:
+            print(f"No cases in {group_name}.")
+            return
+        for idx, case in enumerate(cases, start=1):
+            if not isinstance(case, list) or not case or not isinstance(case[0], (list, tuple)):
+                print(f"Skipping invalid test case at index {idx} in {group_name}: not a matrix")
+                continue
+
+            rows = len(case)
+            cols = len(case[0])
+            if any(len(r) != cols for r in case):
+                print(f"Skipping invalid test case at index {idx} in {group_name}: ragged rows")
+                continue
+
+            # interpret matrix
+            if cols == rows + 1:
+                A = [list(r[:cols-1]) for r in case]
+                b = [[r[-1]] for r in case]
+            elif cols == rows:
+                A = [list(r) for r in case]
+                b = None
+            elif cols >= 2:
+                A = [list(r[:-1]) for r in case]
+                b = [[r[-1]] for r in case]
+            else:
+                print(f"Skipping invalid test case at index {idx} in {group_name}: not enough columns")
+                continue
+
+            print(f"--- {group_name} {idx} ---")
+
+            U, x_exprs, swaps = gaussian_eliminate(A, b)
+
+            # numpy comparison
+            numpy_result = None
+            try:
+                if b is not None:
+                    A_np = np.array(A, dtype=float)
+                    b_vec = np.array([row[0] for row in b], dtype=float)
+                    try:
+                        numpy_result = np.linalg.solve(A_np, b_vec)
+                    except np.linalg.LinAlgError:
+                        numpy_result, *_ = np.linalg.lstsq(A_np, b_vec, rcond=None)
+            except Exception as e:
+                numpy_result = f"numpy error: {e}"
+
+            if U is None:
+                print("Result: Inconsistent system")
+            else:
+                print("U (upper-triangular):")
+                for row in U:
+                    print(row)
+
+                print("Code solution (Expressions):")
+                if not x_exprs:
+                    print("(no solution / empty)")
+                else:
+                    numeric_from_code = []
+                    for e in x_exprs:
+                        print(e)
+                        numeric_from_code.append(expr_to_numeric(e))
+                    print("Code solution (numeric when available):")
+                    print(numeric_from_code)
+
+                print(f"Row swaps: {swaps}")
+
+            print("Numpy solution:", numpy_result)
+            print()
+
+    run_list(test_cases_A, "A")
+    run_list(test_cases_b, "b")
     
 if __name__ == "__main__":
     main()

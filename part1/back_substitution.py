@@ -1,5 +1,12 @@
 class Expression:
+    """Represents a linear expression mapping variable names to coefficients
+    and an optional constant bias.\n
+    Supports arithmetic operations used to
+    build symbolic solutions during back substitution.
+    """
+    
     BIAS = "__const__"
+    EPS = 1e-10
 
     def __init__(self, nums=None, var=None):
         nums = nums or []
@@ -24,7 +31,7 @@ class Expression:
             result.mp[k] = result.mp.get(k, 0.0) + sign * v
 
         # remove near-zero terms
-        result.mp = {k: v for k, v in result.mp.items() if abs(v) > 1e-12}
+        result.mp = {k: v for k, v in result.mp.items() if abs(v) > self.EPS}
         return result
 
     def __add__(self, other):
@@ -57,7 +64,7 @@ class Expression:
 
     def __truediv__(self, other):
         if isinstance(other, (int, float)):
-            if abs(other) < 1e-12:
+            if abs(other) < self.EPS:
                 raise ValueError("Division by zero")
             return self * (1.0 / other)
         return NotImplemented
@@ -86,8 +93,15 @@ class Expression:
         return "".join(terms) if terms else "0"
 
 def back_substitution(U, c):
+    """Perform back substitution on an upper-triangular matrix ``U`` with
+    right-hand side ``c``.\n 
+    Returns a list (or list-of-lists) of
+    :class:`Expression` objects representing the solution(s), or ``None``
+    if the system is inconsistent.
+    """
+    
     if not U: 
-        # return empty matrix of Expresssio
+        # return empty matrix of Expresssion
         if not c or len(c[0]) == 0:
             return []
         return [[Expression() for _ in range(len(c[0]))] for _ in range(len(U))]
@@ -104,15 +118,23 @@ def back_substitution(U, c):
     x = [[Expression() for _ in range(num_c)] for _ in range(num_vars)]
     
     # Find pivot columns (columns with leading non-zero in row k)
+    tol = Expression.EPS
     pivot_cols = []
     pivot_row = {}
-    for k in range(min(num_eqs, num_vars)):
+
+    for k in range(num_eqs):
+        pivot_col = None
+        
         for j in range(num_vars):
-            if abs(U[k][j]) > 1e-10:
-                if j not in pivot_cols:
-                    pivot_cols.append(j)
-                    pivot_row[j] = k
-                    break
+            if abs(U[k][j]) > tol:
+                pivot_col = j
+                break
+        
+        if pivot_col is None:
+            continue  # skip zero row
+
+        pivot_cols.append(pivot_col)
+        pivot_row[pivot_col] = k
     
     # Free variables are those not in pivot_cols
     free_vars = [j for j in range(num_vars) if j not in pivot_cols]
@@ -139,15 +161,23 @@ def back_substitution(U, c):
                     r = r - (x[j][p] * U[k][j])
             
             # Solve for pivot variable
-            if abs(U[k][col]) > 1e-10:
+            if abs(U[k][col]) > tol:
                 x[col][p] = r / U[k][col]
         
         # Check for inconsistency
         for k in range(num_eqs):
-            all_zero = all(abs(U[k][j]) < 1e-10 for j in range(num_vars))
-            if all_zero and abs(c[k][p]) > 1e-10:
+            all_zero = all(abs(U[k][j]) < tol for j in range(num_vars))
+            if all_zero and abs(c[k][p]) > tol:
                 return None  # Inconsistent system
     
     if num_c == 1:
         return [x_row[0] for x_row in x]
     return x
+
+
+def main():
+    pass
+
+
+if __name__ == "__main__":
+    main()
