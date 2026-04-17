@@ -37,10 +37,3 @@ def inverse(A):
                 aug[i] = [aug[i][j] - factor * aug[k][j] for j in range(2 * n)]
     
     return [row[n:] for row in aug]
-
-
-def main():
-    pass
-
-if __name__ == "__main__":
-    main()

@@ -19,10 +19,3 @@ def determinant(A):
     if num_swaps % 2 == 1:
         det = -det
     return det
-
-
-def main():
-    pass
-
-if __name__ == "__main__":
-    main()
