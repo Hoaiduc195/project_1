@@ -1,4 +1,4 @@
-from gaussian import gaussian_eliminate
+from .gaussian import gaussian_eliminate
 
 def determinant(A):
     """Compute the determinant of a square matrix ``A`` using Gaussian

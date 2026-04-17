@@ -1,4 +1,4 @@
-from gaussian import gaussian_eliminate
+from .gaussian import gaussian_eliminate
 
 # numerical tolerance
 EPS = 1e-10
