@@ -11,11 +11,22 @@ def determinant(A):
     
     b = [[] for _ in range(n)]
     
-    res, _, num_swaps = gaussian_eliminate(A, b)
+    res, _, num_swaps = gaussian_eliminate([row[:] for row in A], b)
+
+    # If elimination returned None (inconsistent) or fewer than n pivot rows,
+    # the matrix is singular and its determinant is 0.
+    if res is None:
+        return 0.0
+    if len(res) < n:
+        return 0.0
+
     det = 1.0
-    
-    for i in range(min(n, len(res[0]))):
+    for i in range(n):
+        # ensure diagonal entry exists
+        if i >= len(res[i]):
+            return 0.0
         det *= res[i][i]
+
     if num_swaps % 2 == 1:
         det = -det
     return det

@@ -126,37 +126,64 @@ def build_augmented_matrix(A, b):
 # Verify Solution Function
 
 def verify_solution(A, x, b, eps=1e-10):
+    """Quickly validate a solution from `gaussian_eliminate`.\n
+    Returns: (is_valid, status) where status in
+    {"no_solution", "unique_solution", "infinite_solutions", "invalid_general_solution"}.
+    """
+    
     A = np.array(A, dtype=float)
-    x = np.array(x, dtype=float)
-    b = np.array(b, dtype=float)
+    b = np.array(b, dtype=float).reshape(-1)
 
-    # reshape x nếu cần (vector cột)
-    if x.ndim == 1:
-        x = x.reshape(-1, 1)
-    if b.ndim == 1:
-        b = b.reshape(-1, 1)
+    # x is a vector of numbers 
+    if not isinstance(x[0], Expression):
+        x_vec = np.array(x, dtype=float).reshape(-1)
+        Ax = A @ x_vec
 
-    Ax = A @ x
+        is_valid = np.allclose(Ax, b, atol=eps)
+        
+        rank_A = np.linalg.matrix_rank(A)
+        rank_aug = np.linalg.matrix_rank(np.c_[A, b])
+        n = A.shape[1]
 
-    # kiểm tra gần đúng
-    return np.allclose(Ax, b, atol=eps)
+        if rank_A < rank_aug:
+            return False, "no_solution"
+        elif rank_A == n:
+            return is_valid, "unique_solution"
+        else:
+            return is_valid, "infinite_solutions"
 
-def expr_to_numeric(x):
-    """
-    Convert an Expression, list of Expressions, or nested list of
-    Expressions into numeric values.
+    # x is a vector of Expression
+    m, n = A.shape
+    Ax = []
 
-    If an Expression contains symbolic variables, a ValueError is raised.
-    """
-    if isinstance(x, Expression):
-        variables = [k for k in x.mp if k != Expression.BIAS]
-        if variables:
-            raise ValueError(
-                f"Cannot convert symbolic Expression to numeric: {variables}"
-            )
-        return float(x.mp.get(Expression.BIAS, 0.0))
+    for i in range(m):
+        expr = Expression()
+        for j in range(n):
+            expr += x[j] * A[i, j]
+        Ax.append(expr)
 
-    if isinstance(x, list):
-        return [expr_to_numeric(item) for item in x]
+    for i in range(m):
+        expr = Ax[i]
 
-    return float(x)
+        const = expr.mp.get(Expression.BIAS, 0.0)
+        
+        # check variables
+        for k, v in expr.mp.items():
+            if k != Expression.BIAS and abs(v) > eps:
+                return False, "invalid_general_solution"
+
+        # check constanst
+        if abs(const - b[i]) > eps:
+            return False, "invalid_general_solution"
+
+    # classify result
+    rank_A = np.linalg.matrix_rank(A)
+    rank_aug = np.linalg.matrix_rank(np.c_[A, b])
+    n = A.shape[1]
+
+    if rank_A < rank_aug:
+        return False, "no_solution"
+    elif rank_A == n:
+        return True, "unique_solution"
+    else:
+        return True, "infinite_solutions"
