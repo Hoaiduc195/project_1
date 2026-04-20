@@ -1,0 +1,9 @@
+# This file is used internally by FFMPEG.
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/OtherDecompositions/1584795214_3196346240_223132457.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/OtherDecompositions/4072820271_3642983755_93487543.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/OtherDecompositions/4072820271_2834709167_4024755845.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/OtherDecompositions/4072820271_4082379130_1519839632.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/OtherDecompositions/4072820271_3431953661_125629122.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/OtherDecompositions/4072820271_2834709167_1588554518.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/OtherDecompositions/4072820271_832311250_1386511072.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/OtherDecompositions/4072820271_2834709167_3147957721.mp4'

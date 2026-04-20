@@ -1,0 +1,8 @@
+# This file is used internally by FFMPEG.
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/ImageCompression/1584795214_2777990013_223132457.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/ImageCompression/4072820271_3413387834_2981374406.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/ImageCompression/4072820271_2834709167_786451635.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/ImageCompression/4072820271_3522150261_1545800829.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/ImageCompression/4072820271_2834709167_2930155068.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/ImageCompression/4072820271_1659258983_3821576883.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/ImageCompression/4072820271_2834709167_3456932039.mp4'
