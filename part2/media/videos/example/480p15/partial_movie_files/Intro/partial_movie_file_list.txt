@@ -1,0 +1,6 @@
+# This file is used internally by FFMPEG.
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/Intro/1584795214_704357743_223132457.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/Intro/4072820271_3003498678_2865024237.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/Intro/4072820271_2834709167_1471408668.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/Intro/4072820271_3750198486_3369849435.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/Intro/4072820271_2834709167_3214798991.mp4'

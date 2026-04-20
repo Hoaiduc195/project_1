@@ -1,0 +1,13 @@
+# This file is used internally by FFMPEG.
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/SVDIntro/1584795214_4235399572_223132457.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/SVDIntro/4072820271_2834709167_3845712385.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/SVDIntro/4072820271_3579517919_1885533888.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/SVDIntro/4072820271_4125004280_1885533888.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/SVDIntro/4072820271_2834709167_4093805031.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/SVDIntro/4072820271_1212333808_174278544.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/SVDIntro/4072820271_3988123683_1668286631.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/SVDIntro/4072820271_2834709167_190439592.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/SVDIntro/4072820271_147425457_2766294187.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/SVDIntro/4072820271_659005592_1708494734.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/SVDIntro/4072820271_3066573941_1363809375.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/480p15/partial_movie_files/SVDIntro/4072820271_1797655766_810005468.mp4'
