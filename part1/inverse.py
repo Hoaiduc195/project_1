@@ -1,4 +1,4 @@
-from .gaussian import build_augmented_matrix, swap_row, add_row, mul_row
+from part1.gaussian import build_augmented_matrix, swap_row, add_row, mul_row
 
 EPS = 1e-10
 

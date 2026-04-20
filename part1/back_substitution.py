@@ -1,4 +1,4 @@
-from utils import Expression
+from part1.utils import Expression
 
 def back_substitution(U, c):
     """Perform back substitution on an upper-triangular matrix ``U`` with

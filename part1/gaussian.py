@@ -1,6 +1,6 @@
 import numpy as np
-from .back_substitution import Expression, back_substitution
-from .utils import swap_row, mul_row, add_row, build_augmented_matrix
+from part1.back_substitution import back_substitution
+from part1.utils import swap_row, mul_row, add_row, build_augmented_matrix, Expression
 
 EPS = 1e-10
 
