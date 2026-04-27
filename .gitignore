@@ -2,3 +2,7 @@
 *.mp4
 __pycache__
 __init__*
+skills/
+.agents/
+.claude/
+manim_scripts.md

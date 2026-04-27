@@ -14,11 +14,6 @@ class SVDOverview(Scene):
         self.play(title.animate.to_edge(UP, buff=2.0))
         self.wait()
 
-        tex = Text("TỔNG QUAN VỀ SVD",font="Arial", font_size=15)
-        tex.to_corner(UL, buff=0.25)
-        self.play(Write(tex))
-        self.wait(2)
-
         Title = Text("Singular Value Decomposition", font_size=36)
         box2 = SurroundingRectangle(
             Title,
@@ -50,855 +45,944 @@ class SVDOverview(Scene):
         self.play(Write(text_group2))
         self.wait(10)
 
-
-
-# Scene 2 - TONG QUAN VE SVD
-
-class SVDedvan(Scene):
+# Scene 2 - Problem Definition
+class SVDProblemDefinition(Scene):
     def construct(self):
-        tex = Text("TỔNG QUAN VỀ SVD",font="Arial", font_size=15)
+        
+        tex = Text("ĐẶT VẤN ĐỀ", font="Times New Roman", font_size=15)
         tex.to_corner(UL, buff=0.25)
         self.play(Write(tex))
-        Title = Text("Điểm mạnh của SVD",font="Arial", font_size=36)
-        self.play(Title.animate.to_edge(UP, buff = 1.0))
+        self.wait(2)
+        
+        # ===== Title =====
+        title = Text("Có cách nào phân tách một ma trận biến đổi phức tạp?", font="Times New Roman", font_size=36)
+        self.play(Write(title))
+        self.play(title.animate.to_edge(UP))
 
-        matrices = [
-            MathTex(r"\begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}").next_to(Title, DOWN, buff=2.0),
-            MathTex(r"\begin{bmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \\ 7 & 8 & 9\end{bmatrix}").next_to(Title, DOWN, buff=2.0),
-            MathTex(r"\begin{bmatrix} 1 & 2 \\ 3 & 4 \\ 0 & 0\end{bmatrix}").next_to(Title, DOWN, buff=2.0),
-            MathTex(r"\begin{bmatrix} 1 & 2 & 3\\ 4 & 5 & 6\end{bmatrix}").next_to(Title, DOWN, buff=2.0)
-        ]
-        tex = Text("Mọi ma trận bất kể rank, không gian và tính đối xứng để có thể phân rã thành SVD",font="Arial", font_size=20)
-        tex.next_to(matrices[0], DOWN, buff=1.5)
-        current = matrices[0]
-        self.play(Write(current))
+        # ===== Khởi tạo Ma trận A và tính toán SVD =====
+        A_matrix = np.array([
+            [2.0, 1.0],
+            [0.0, 1.0]
+        ])
+        
+        U_mat, S_mat, VT_mat = np.linalg.svd(A_matrix)
+        Sigma_mat = np.diag(S_mat)
+
+        # =================================================================
+        # PHẦN 1: MA TRẬN A VÀ MINH HOẠ BIẾN ĐỔI TRỰC TIẾP
+        # =================================================================
+        A_tex = MathTex(r"A = \begin{bmatrix} 2 & 1 \\ 0 & 1 \end{bmatrix}")
+        A_tex.next_to(title, DOWN, buff=0.3)
+        self.play(Write(A_tex))
+
+        # Mặt phẳng nền (đứng yên, mờ) để làm hệ quy chiếu
+        bg_plane = NumberPlane().set_opacity(0.3)
+        
+        # Mặt phẳng và hình tròn sẽ bị biến đổi
+        plane = NumberPlane()
+        circle = Circle(radius=1, color=BLUE).set_fill(BLUE, opacity=0.3)
+        
+        # Nhóm lại để biến đổi toàn bộ không gian
+        moving_space = VGroup(plane, circle)
+
+        self.play(Create(bg_plane), Create(moving_space))
+        self.wait(0.5)
+
+        label_direct = Text("Áp dụng A trực tiếp", font="Times New Roman", font_size=24).to_edge(DOWN)
+        self.play(Write(label_direct))
+
+        # Biến đổi TOÀN BỘ không gian trực tiếp bằng ma trận A
+        self.play(moving_space.animate.apply_matrix(A_matrix), run_time=1.5)
+        self.wait(1.5)
+
+        # =================================================================
+        # PHẦN 2: GIỚI THIỆU SVD A = U \Sigma V^T = [] [] []
+        # =================================================================
+        self.play(
+            FadeOut(bg_plane), 
+            FadeOut(moving_space), 
+            FadeOut(label_direct)
+        )
+
+        svd_formula = MathTex(r"A = U \Sigma V^T")
+        svd_formula.move_to(A_tex)
+
+        self.play(Transform(A_tex, svd_formula))
+        self.wait(0.5)
+
+        def mat_to_tex(mat):
+            rows = []
+            for row in mat:
+                rows.append(" & ".join([f"{val:.2f}" for val in row]))
+            return r"\begin{bmatrix} " + r" \\ ".join(rows) + r" \end{bmatrix}"
+
+        U_tex = mat_to_tex(U_mat)
+        S_tex = mat_to_tex(Sigma_mat)
+        VT_tex = mat_to_tex(VT_mat)
+
+        svd_matrices = MathTex(
+            r"=", U_tex, S_tex, VT_tex
+        ).next_to(A_tex, DOWN, buff=0.5)
+
+        self.play(Write(svd_matrices))
+        self.wait(2)
+
+        # =================================================================
+        # PHẦN 3: TÁCH THÀNH 3 BƯỚC BIẾN ĐỔI TRÊN MẶT PHẲNG
+        # =================================================================
+        self.play(FadeOut(svd_matrices))
+
+        # Khởi tạo lại không gian gốc cho các bước biến đổi SVD
+        bg_plane_2 = NumberPlane().set_opacity(0.3)
+        plane_2 = NumberPlane()
+        circle_2 = Circle(radius=1, color=BLUE).set_fill(BLUE, opacity=0.3)
+        moving_space_2 = VGroup(plane_2, circle_2)
+
+        self.play(Create(bg_plane_2), Create(moving_space_2))
+
+        # Bước 1: Nhân V^T (Xoay không gian)
+        step1 = Text("1. Xoay hệ trục đầu vào (V^T)", font="Times New Roman", font_size=24).to_edge(DOWN)
+        self.play(Write(step1))
+        self.play(moving_space_2.animate.apply_matrix(VT_mat), run_time=1.5)
+        self.wait(0.5)
+
+        # Bước 2: Nhân Sigma (Co giãn không gian theo trục)
+        step2 = Text("2. Co giãn (Σ)", font="Times New Roman", font_size=24).to_edge(DOWN)
+        self.play(Transform(step1, step2))
+        self.play(moving_space_2.animate.apply_matrix(Sigma_mat), run_time=1.5)
+        self.wait(0.5)
+
+        # Bước 3: Nhân U (Xoay không gian lần cuối)
+        step3 = Text("3. Xoay kết quả đầu ra (U)", font="Times New Roman", font_size=24).to_edge(DOWN)
+        self.play(Transform(step1, step3))
+        self.play(moving_space_2.animate.apply_matrix(U_mat), run_time=1.5)
+        self.wait(1)
+
+        # Kết luận
+        final_text = Text("SVD = Xoay → Co giãn → Xoay", font="Times New Roman", font_size=28, color=YELLOW).to_edge(DOWN)
+        self.play(Transform(step1, final_text))
+        self.wait(2)
+        
+# Scene 3 - SVD Advantage
+class SVDAdvan(Scene):
+    def construct(self):
+        # corner
+        tex = Text("ĐIỂM MẠNH CỦA SVD", font="Times New Roman", font_size=15)
+        tex.to_corner(UL, buff=0.25)
         self.play(Write(tex))
-        self.wait()
-        for next_matrix in matrices[1:]:
-            self.play(Transform(current, next_matrix))
-            self.wait()
+        self.wait(2)
+        
+         # Title
+        title = Text("Mọi ma trận có thể phân rã với phương pháp SVD", font="Times New Roman", font_size=36)
+        self.play(Write(title))
+        self.play(title.animate.to_edge(UP, buff=1.0))
 
+        # ===== CASE 1: vuông =====
+        expr1 = MathTex(
+            r"A = U \Sigma V^T = "
+            r"\begin{bmatrix}1 & 0\\0 & 1\end{bmatrix}"
+            r"\begin{bmatrix}3 & 0\\0 & 2\end{bmatrix}"
+            r"\begin{bmatrix}1 & 0\\0 & 1\end{bmatrix}"
+        )
+        expr1.next_to(title, DOWN, buff=2)
 
-# Scene 3 - TONG QUAN VE SVD
+        desc1 = Text("Ma trận vuông", font="Times New Roman", font_size=20)
+        desc1.next_to(expr1, DOWN, buff=1.3)
+
+        self.play(Write(expr1), Write(desc1))
+        self.wait(2)
+
+        # ===== CASE 2: m > n =====
+        expr2 = MathTex(
+            r"A = U \Sigma V^T = "
+            r"\begin{bmatrix}1 & 0 & 0\\0 & 1 & 0\\0 & 0 & 1\end{bmatrix}"
+            r"\begin{bmatrix}3 & 0\\0 & 2\\0 & 0\end{bmatrix}"
+            r"\begin{bmatrix}1 & 0\\0 & 1\end{bmatrix}"
+        )
+        expr2.move_to(expr1)
+
+        desc2 = Text("Ma trận không vuông", font="Times New Roman", font_size=20)
+        desc2.move_to(desc1)
+
+        self.play(
+            Transform(expr1, expr2),
+            Transform(desc1, desc2)
+        )
+        self.wait(2)
+
+        # ===== CASE 3: m < n =====
+        expr3 = MathTex(
+            r"A = U \Sigma V^T = "
+            r"\begin{bmatrix}1 & 0\\0 & 1\end{bmatrix}"
+            r"\begin{bmatrix}3 & 0 & 0\\0 & 2 & 0\end{bmatrix}"
+            r"\begin{bmatrix}1 & 0 & 0\\0 & 1 & 0\\0 & 0 & 1\end{bmatrix}"
+        )
+        expr3.move_to(expr1)
+
+        desc3 = Text("Ma trận không vuông", font="Times New Roman", font_size=20)
+        desc3.move_to(desc1)
+
+        self.play(
+            Transform(expr1, expr3),
+            Transform(desc1, desc3)
+        )
+        self.wait(2)
+
+# Scene 4 - Prerequisities
 class SVDConceptFlow(Scene):
     def construct(self):
-        tex = Text("TỔNG QUAN VỀ SVD", font="Arial", font_size=15)
-        tex.to_corner(UL, buff=0.25)
-        self.play(Write(tex))
+        def get_label(text_str):
+            return Text(text_str, font="Times New Roman", font_size=24).to_edge(DOWN, buff=0.5)
 
-        tex2 = Text("CÁC KIẾN THỨC CẦN THIẾT", font="Arial", font_size=15)
-        tex2.to_corner(UL, buff=0.25)
-        self.play(Transform(tex, tex2))
-        self.wait(2)
+        # =========================================================
+        # 0. MỞ ĐẦU (Đọc kịch bản: ~7 giây)
+        # =========================================================
+        title = Text("CÁC KIẾN THỨC CẦN THIẾT", font="Times New Roman", font_size=15, color=GREY)
+        self.play(Write(title))
+        self.play(title.animate.to_edge(UP, buff=0.5))
 
         plane = NumberPlane()
-        self.play(Create(plane))
+        self.play(Create(plane), run_time=1.5)
+        self.wait(3) # Chờ kết thúc câu mở đầu
 
-        v1 = Arrow(plane.c2p(0, 0), plane.c2p(2, 1), buff=0, color=BLUE)
-        v2 = Arrow(plane.c2p(0, 0), plane.c2p(1, 2), buff=0, color=GREEN)
+        # =========================================================
+        # 1. KHÔNG GIAN VECTOR (Đọc: ~8 giây)
+        # =========================================================
+        v1 = Vector([2, 1], color=BLUE)
+        v2 = Vector([1, 2], color=GREEN)
 
-        label = Text("Không gian vector và bao tuyến tính", font="Arial").scale(0.4).to_edge(DOWN)
+        label = get_label("1. Không gian vector & Bao tuyến tính")
         self.play(Write(label), GrowArrow(v1), GrowArrow(v2))
-        self.wait(2)
+        self.wait(6) # Cho người xem ngấm kiến thức và khớp giọng đọc
 
-        v1_ortho = Arrow(plane.c2p(0, 0), plane.c2p(2, 0), buff=0, color=BLUE)
-        v2_ortho = Arrow(plane.c2p(0, 0), plane.c2p(0, 2), buff=0, color=GREEN)
+        # =========================================================
+        # 2. TRỰC GIAO (Đọc: ~7 giây)
+        # =========================================================
+        v1_ortho = Vector([2, 0], color=BLUE)
+        v2_ortho = Vector([0, 2], color=GREEN)
 
-        new_label = Text("Trực giao",font="Arial").scale(0.4).to_edge(DOWN)
+        new_label = get_label("2. Trực giao (Tích vô hướng = 0)")
 
         self.play(
             Transform(v1, v1_ortho),
             Transform(v2, v2_ortho),
-            Transform(label, new_label)
+            Transform(label, new_label),
+            run_time=1
         )
-
-        right_angle = RightAngle(v1, v2, length=0.3)
+        right_angle = RightAngle(v1, v2, length=0.3, color=YELLOW)
         self.play(Create(right_angle))
-        self.wait(2)
+        
+        self.wait(5) # Khớp giọng đọc
 
-        square = Square(color=YELLOW)
-        self.play(FadeOut(v1, v2, right_angle), Create(square))
+        # =========================================================
+        # 3. MA TRẬN TRỰC GIAO (Đọc: ~12 giây)
+        # =========================================================
+        new_label = get_label("3. Ma trận trực giao: Xoay / Phản xạ (bảo toàn độ dài & góc)")
+        ortho_group = VGroup(v1, v2, right_angle)
 
-        new_label = Text("Ma trận trực giao = phép quay",font="Arial").scale(0.4).to_edge(DOWN)
+        self.play(Transform(label, new_label))
+        self.play(ortho_group.animate.rotate(PI / 4, about_point=ORIGIN), run_time=1.5)
+        self.wait(3) # "Điều tuyệt vời là nó luôn bảo toàn hình dáng..."
+        self.play(ortho_group.animate.rotate(-PI / 4, about_point=ORIGIN), run_time=1.5)
+        self.wait(3)
+        
+        self.play(FadeOut(ortho_group))
+
+        # =========================================================
+        # 4. VECTOR RIÊNG (Đọc: ~12 giây)
+        # =========================================================
+        new_label = get_label("4. Vector riêng: Giữ nguyên hướng khi bị biến đổi")
+        eigen_vec = Vector([2, 1], color=RED)
+        eigen_span = Line(ORIGIN, [6, 3, 0], color=GRAY).set_opacity(0.5)
+
+        self.play(Transform(label, new_label))
+        self.play(Create(eigen_span), GrowArrow(eigen_vec))
+        self.wait(3) # "Hầu hết các vector đều bị lệch hướng..."
+
+        # Biến đổi: Chỉ co giãn, không đổi hướng
+        scaled_eigen = Vector([4, 2], color=RED)
+        self.play(Transform(eigen_vec, scaled_eigen), run_time=1.5)
+        self.wait(5) # "...Nhưng vector riêng thì khác"
+
+        self.play(FadeOut(eigen_vec, eigen_span))
+
+        # =========================================================
+        # 5. XOAY HỆ TỌA ĐỘ (Đọc: ~8 giây)
+        # =========================================================
+        new_label = get_label("5. Xoay hệ tọa độ (Thay đổi cơ sở)")
         self.play(Transform(label, new_label))
 
-        self.play(square.animate.rotate(PI / 4))
+        self.play(plane.animate.rotate(PI / 6, about_point=ORIGIN), run_time=1.5)
+        self.wait(2)
+        self.play(plane.animate.rotate(-PI / 6, about_point=ORIGIN), run_time=1.5)
         self.wait(2)
 
-        vector = Arrow(plane.c2p(0, 0), plane.c2p(2, 1), buff=0, color=RED)
-        self.play(FadeOut(square), GrowArrow(vector))
-
-        new_label = Text("Vector riêng: hướng không đổi",font="Arial").scale(0.4).to_edge(DOWN)
-        self.play(Transform(label, new_label))
-
-        matrix = Arrow(plane.c2p(0, 0), plane.c2p(4, 1), buff=0, color=RED)
-        self.play(Transform(vector, matrix))
+        # =========================================================
+        # 6. HẠNG - RANK (Đọc: ~12 giây)
+        # =========================================================
+        new_label = get_label("6. Hạng (Rank): Số chiều của không gian sau biến đổi")
+        square = Square(side_length=2, color=BLUE).set_fill(BLUE, opacity=0.3).move_to([1, 1, 0])
+        
+        self.play(Transform(label, new_label), Create(square))
         self.wait(2)
-        new_label = Text("Đổi cơ sở",font="Arial").scale(0.4).to_edge(DOWN)
-        self.play(Transform(label, new_label))
 
-        self.play(plane.animate.rotate(PI / 6))
-        self.wait(2)
-        self.play(plane.animate.rotate(-PI / 6))
-
-        square = Square(color=BLUE)
-        self.play(FadeOut(vector), Create(square))
-
-        new_label = Text("Hạng = số chiều sau biến đổi", font="Arial").scale(0.4).to_edge(DOWN)
-        self.play(Transform(label, new_label))
-
-        collapse_matrix = [[1, 0], [0, 0]]
-        self.play(square.animate.apply_matrix(collapse_matrix))
-        self.wait(2)
+        collapse_matrix = [[1, 1], [1, 1]]
+        self.play(square.animate.apply_matrix(collapse_matrix), run_time=2)
+        self.wait(5) # "ép xẹp toàn bộ mặt phẳng 2D thành 1D..."
+        
         self.play(FadeOut(square))
 
-        vec = Arrow(plane.c2p(0, 0), plane.c2p(2, 1), buff=0, color=BLUE)
-        axis = Line(plane.c2p(0, 0), plane.c2p(3, 0), color=YELLOW)
-        proj = Arrow(plane.c2p(0, 0), plane.c2p(2, 0), buff=0, color=GREEN)
+        # =========================================================
+        # 7. PHÉP CHIẾU (Đọc: ~10 giây)
+        # =========================================================
+        new_label = get_label("7. Phép chiếu trực giao lên không gian con")
+        vec = Vector([2, 2], color=BLUE)
+        axis = Line([-1, 0, 0], [4, 0, 0], color=WHITE)
+        proj = Vector([2, 0], color=GREEN)
+        dashed_line = DashedLine(vec.get_end(), proj.get_end(), color=YELLOW)
 
-        orthvec = Arrow(plane.c2p(2, 1), plane.c2p(2, 0), buff=0, color=YELLOW)
-        dashed_vec = DashedVMobject(orthvec, num_dashes=20)
-
-        self.play(GrowArrow(vec), Create(axis))
-
-        new_label = Text("Phép chiếu", font="Arial").scale(0.4).to_edge(DOWN)
         self.play(Transform(label, new_label))
-
-        self.play(Create(dashed_vec))
-        self.wait(1)
+        self.play(Create(axis), GrowArrow(vec))
+        self.wait(2) # "Tưởng tượng bạn rọi một ánh đèn..."
+        self.play(Create(dashed_line))
         self.play(GrowArrow(proj))
-        self.wait(2)
+        
+        self.wait(4)
+        self.play(FadeOut(VGroup(vec, axis, proj, dashed_line, plane)))
 
-        self.play(FadeOut(vec, axis, proj, dashed_vec, plane))
-
-        psd_text = MathTex("x^T A^T A x \\ge 0")
-        new_label = Text("Ma trận bán xác định dương", font="Arial").scale(0.4).to_edge(DOWN)
+        # =========================================================
+        # 8. MA TRẬN PSD (Đọc: ~12 giây)
+        # =========================================================
+        new_label = get_label("8. Ma trận đối xứng bán xác định dương")
+        psd_text = MathTex(r"x^T (A^T A) x = \|Ax\|^2 \ge 0", font_size=48)
 
         self.play(Transform(label, new_label), Write(psd_text))
-        self.wait(2)
+        self.wait(9) # Đọc câu thoại về PSD
 
         self.play(FadeOut(psd_text))
 
-        flow = Text("Quá trình hình thành SVD", font="Arial", font_size=36)
-        flow.to_edge(UP, buff=2.0)
+        # =========================================================
+        # 9. KẾT NỐI SVD (Đọc: ~12 giây)
+        # =========================================================
+        flow = Text("Tất cả hội tụ lại thành phân rã SVD", font="Times New Roman", font_size=36, color=YELLOW)
+        final_formula = MathTex(r"A = U \Sigma V^T", font_size=60)
+        final_label = get_label("SVD = Xoay → Co giãn → Xoay")
 
-        new_label = Text("SVD = Phép quay → Phép co giãn → Phép quay", font="Arial", font_size=30).next_to(flow, DOWN, buff=1.5)
+        flow.to_edge(UP, buff=1.5)
+        final_formula.next_to(flow, DOWN, buff=1)
 
-        self.play(Transform(label, new_label))
+        self.play(Transform(label, final_label))
         self.play(Write(flow))
+        self.play(Write(final_formula))
+
+        # Để dư thời gian đoạn cuối cho người xem nhìn lại công thức
+        self.wait(8)
+
+# Scene 5 - Diagonalization instruction
+class Diagonalization(Scene):
+    def construct(self):
+        # Đặt text ở góc trên bên trái (UL)
+        title = Text("Chéo hoá ma trận", font_size=15, color=GREY).to_corner(UL, buff=0.25)
+        self.play(Write(title))
+
+        # --- PHẦN MỞ ĐẦU: Giới thiệu ma trận A ---
+        A_mat = MathTex(r"A = \begin{bmatrix} 1 & 1 & 1 \\ 0 & 2 & 1 \\ 0 & 0 & 3 \end{bmatrix}")
+        self.play(FadeIn(A_mat))
+        self.wait(1)
+        
+        # Di chuyển ma trận A sang góc trên bên phải (UR) để làm không gian tham chiếu
+        self.play(A_mat.animate.to_corner(UR, buff=0.25).scale(0.8))
+
+        # --- BƯỚC 1: TÌM TRỊ RIÊNG ---
+        step1_title = Text("Bước 1: Giải phương trình đặc trưng tìm trị riêng", font_size=24, color=YELLOW)
+        step1_title.next_to(title, DOWN, buff=0.5, aligned_edge=LEFT)
+        self.play(Write(step1_title))
+
+        char_eq1 = MathTex(r"\det(A - \lambda I) = 0")
+        char_eq2 = MathTex(r"(1-\lambda)(2-\lambda)(3-\lambda) = 0")
+        eigenvalues = MathTex(r"\Rightarrow \lambda_1 = 1,\ \lambda_2 = 2,\ \lambda_3 = 3")
+
+        step1_group = VGroup(char_eq1, char_eq2, eigenvalues).arrange(DOWN, buff=0.4).scale(0.8)
+        step1_group.next_to(step1_title, DOWN, buff=0.8).set_x(0)
+
+        self.play(Write(char_eq1))
+        self.wait(0.5)
+        self.play(TransformFromCopy(char_eq1, char_eq2))
+        self.wait(0.5)
+        self.play(Write(eigenvalues))
+        self.wait(2)
+
+        self.play(FadeOut(step1_group), FadeOut(step1_title))
+
+        # --- BƯỚC 2: TÌM CƠ SỞ KHÔNG GIAN RIÊNG CHUYÊN SÂU ---
+        step2_title = Text("Bước 2: Giải (A - λI)x = 0 tìm nghiệm tổng quát & cơ sở", font_size=24, color=YELLOW)
+        step2_title.move_to(step1_title, aligned_edge=LEFT)
+        self.play(Write(step2_title))
+
+        # Nhóm lưu trữ kết quả ở dưới cùng màn hình
+        step2_final_group = VGroup(
+            MathTex(r"v_1 = \begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix}"),
+            MathTex(r"v_2 = \begin{bmatrix} 1 \\ 1 \\ 0 \end{bmatrix}"),
+            MathTex(r"v_3 = \begin{bmatrix} 1 \\ 1 \\ 1 \end{bmatrix}")
+        ).arrange(RIGHT, buff=1.2).scale(0.7).to_edge(DOWN, buff=0.5)
+
+        # --- Giải chi tiết cho từng Lambda ---
+        for i, (l_val, v_mat_str, sys_str, sol_str) in enumerate([
+            (1, r"\begin{bmatrix} 0 & 1 & 1 \\ 0 & 1 & 1 \\ 0 & 0 & 2 \end{bmatrix}", r"\begin{cases} x_2 + x_3 = 0 \\ 2x_3 = 0 \end{cases}", r"t \begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix}"),
+            (2, r"\begin{bmatrix} -1 & 1 & 1 \\ 0 & 0 & 1 \\ 0 & 0 & 1 \end{bmatrix}", r"\begin{cases} -x_1 + x_2 + x_3 = 0 \\ x_3 = 0 \end{cases}", r"t \begin{bmatrix} 1 \\ 1 \\ 0 \end{bmatrix}"),
+            (3, r"\begin{bmatrix} -2 & 1 & 1 \\ 0 & -1 & 1 \\ 0 & 0 & 0 \end{bmatrix}", r"\begin{cases} -2x_1 + x_2 + x_3 = 0 \\ -x_2 + x_3 = 0 \end{cases}", r"t \begin{bmatrix} t \\ t \\ t \end{bmatrix} = t \begin{bmatrix} 1 \\ 1 \\ 1 \end{bmatrix}")
+        ]):
+            # Dùng ngoặc nhọn kép {{ }} cho các lệnh LaTeX trong f-string
+            l_title = MathTex(fr"\lambda_{{{i+1}}} = {l_val} \Rightarrow (A - {l_val}I)x = 0").scale(0.8).next_to(step2_title, DOWN, buff=0.4, aligned_edge=LEFT)
+            l_step1 = MathTex(fr"{v_mat_str} \begin{{bmatrix}} x_1 \\ x_2 \\ x_3 \end{{bmatrix}} = \begin{{bmatrix}} 0 \\ 0 \\ 0 \end{{bmatrix}} \Rightarrow {sys_str}").scale(0.7)
+            
+            l_step2_txt = Text("Nghiệm tổng quát: ", font_size=20)
+            l_step2_math = MathTex(fr"x = {sol_str}").scale(0.7)
+            l_step2 = VGroup(l_step2_txt, l_step2_math).arrange(RIGHT, buff=0.2)
+            
+            l_display = VGroup(l_step1, l_step2).arrange(DOWN, buff=0.4).next_to(l_title, DOWN, buff=0.4).set_x(0)
+            
+            self.play(Write(l_title))
+            self.play(Write(l_step1))
+            self.wait(0.5)
+            self.play(Write(l_step2))
+            self.wait(1)
+            self.play(TransformFromCopy(l_step2_math, step2_final_group[i]))
+            self.play(FadeOut(l_title), FadeOut(l_display))
+
+        # Dời bộ 3 vectơ cơ sở lên phía trên
+        self.play(step2_final_group.animate.next_to(step2_title, DOWN, buff=0.5).set_x(0))
+        self.wait(0.5)
+
+        # --- BƯỚC 3: XÂY DỰNG P, D VÀ P^-1 ---
+        step3_title = Text("Bước 3: Xây dựng P, D và tính P nghịch đảo", font_size=24, color=YELLOW)
+        step3_title.move_to(step2_title, aligned_edge=LEFT)
+        self.play(FadeOut(step2_title), Write(step3_title))
+
+        # 3.1 Xây dựng P
+        P_mat = MathTex(
+            r"P = [v_1 \quad v_2 \quad v_3] = ", 
+            r"\begin{bmatrix} 1 & 1 & 1 \\ 0 & 1 & 1 \\ 0 & 0 & 1 \end{bmatrix}"
+        ).scale(0.8).next_to(step2_final_group, DOWN, buff=0.6)
+        
+        self.play(Write(P_mat[0]))
+        self.play(TransformFromCopy(step2_final_group, P_mat[1]))
+        self.wait(1)
+
+        # Xóa các vector v1, v2, v3 để dọn dẹp không gian, sau đó đẩy P_mat lên
+        self.play(FadeOut(step2_final_group))
+        self.play(P_mat.animate.next_to(step3_title, DOWN, buff=0.5).set_x(0))
+
+        # 3.2 Xây dựng D (Thêm bước trung gian chứa lambda)
+        D_sym = MathTex(
+            r"D = \begin{bmatrix} \lambda_1 & 0 & 0 \\ 0 & \lambda_2 & 0 \\ 0 & 0 & \lambda_3 \end{bmatrix}",
+        ).scale(0.8)
+        
+        D_val = MathTex(
+            r"= \begin{bmatrix} 1 & 0 & 0 \\ 0 & 2 & 0 \\ 0 & 0 & 3 \end{bmatrix}"
+        ).scale(0.8)
+
+        D_group = VGroup(D_sym, D_val).arrange(RIGHT, buff=0.2).next_to(P_mat, DOWN, buff=0.5)
+
+        self.play(Write(D_sym))
+        self.wait(0.5)
+        self.play(Write(D_val))
+        self.wait(1)
+
+        # 3.3 Tính P nghịch đảo
+        P_inv_txt = Text("Tìm ma trận nghịch đảo: ", font_size=20)
+        P_inv_math = MathTex(r"P^{-1} = \begin{bmatrix} 1 & -1 & 0 \\ 0 & 1 & -1 \\ 0 & 0 & 1 \end{bmatrix}").scale(0.8)
+        P_inv_group = VGroup(P_inv_txt, P_inv_math).arrange(RIGHT, buff=0.2).next_to(D_group, DOWN, buff=0.5)
+        
+        self.play(Write(P_inv_group))
+        self.wait(2)
+
+        # --- TỔNG KẾT ---
+        self.play(
+            FadeOut(P_mat), FadeOut(D_group), FadeOut(P_inv_group), 
+            FadeOut(step3_title), FadeOut(A_mat)
+        )
+
+        final_title = Text("Kết luận", font_size=28, color=YELLOW).to_edge(UP, buff=1)
+        self.play(Write(final_title))
+
+        # Hiển thị phương trình tổng quát
+        final_eq1 = MathTex(r"A = P D P^{-1}").scale(1.2)
+        
+        # Hiển thị 3 ma trận nhân với nhau
+        final_eq2 = MathTex(
+            r"= \begin{bmatrix} 1 & 1 & 1 \\ 0 & 1 & 1 \\ 0 & 0 & 1 \end{bmatrix}",
+            r"\begin{bmatrix} 1 & 0 & 0 \\ 0 & 2 & 0 \\ 0 & 0 & 3 \end{bmatrix}",
+            r"\begin{bmatrix} 1 & -1 & 0 \\ 0 & 1 & -1 \\ 0 & 0 & 1 \end{bmatrix}"
+        ).scale(0.9)
+        
+        # Hiển thị kết quả cuối cùng khớp với ma trận A
+        final_eq3 = MathTex(
+            r"= \begin{bmatrix} 1 & 1 & 1 \\ 0 & 2 & 1 \\ 0 & 0 & 3 \end{bmatrix}"
+        ).scale(1.2)
+        
+        final_group = VGroup(final_eq1, final_eq2, final_eq3).arrange(DOWN, buff=0.6).next_to(final_title, DOWN, buff=0.5)
+        
+        self.play(Write(final_eq1))
+        self.wait(1)
+        self.play(Write(final_eq2))
+        self.wait(1)
+        self.play(Write(final_eq3))
+        
+        # Highlight kết quả cuối cùng để nhấn mạnh
+        self.play(SurroundingRectangle(final_eq3, color=GREEN, buff=0.2).animate)
         self.wait(3)
-
-        self.play(FadeOut(flow, label))
-        self.wait()
-
-# Scene 1 - TINH TOAN SVD
+                                                
+# Scene 6 - SVD instruction
 class ComputeSVD(Scene):
     def construct(self):
-        tex = Text("TÍNH TOÁN SVD",font="Arial", font_size=15)
-        tex.to_corner(UL, buff=0.25)
+        # ===== Tiêu đề =====
+        tex = Text("TÍNH TOÁN SVD", font="Times New Roman", font_size=15, color=GRAY)
+        tex.to_corner(UL, buff=0.5)
         self.play(Write(tex))
-        expr = MathTex("A", "=", "U", r"\Sigma", "V^T")
-        expr.scale(1.0)
-        expr_cop = expr.copy()
+
+        # ===== 1. Khởi tạo công thức gốc =====
+        expr = MathTex("A", "=", "U", r"\Sigma", "V^T", font_size=60)
+        
+        # Đặt màu chuẩn để người xem dễ bám sát
+        expr[2].set_color(BLUE)    # U
+        expr[3].set_color(YELLOW)  # Sigma
+        expr[4].set_color(GREEN)   # V^T
 
         self.play(Write(expr))
+        self.wait(1)
+        self.play(expr.animate.to_edge(UP, buff=1.5))
 
-        U = expr[2]
-        Sigma = expr[3]
-        VT = expr[4]
-        A = expr[0]
+        # Khai báo lại các thành phần để trỏ Arrow
+        A, eq, U, Sigma, VT = expr
 
+        # Label cho từng ma trận (Đã được tản ra 2 bên và căn chỉnh khoảng cách)
+        label_U = Text("Trực giao", font="Times New Roman", font_size=24).next_to(U, DOWN, buff=1.5).shift(LEFT * 1.5)
+        label_S = Text("Chéo chữ nhật", font="Times New Roman", font_size=24).next_to(Sigma, DOWN, buff=2)
+        label_V = Text("Trực giao", font="Times New Roman", font_size=24).next_to(VT, DOWN, buff=1.5).shift(RIGHT * 1.5)
+
+        # Mũi tên tự động nối nghiêng
+        arrow_U = Arrow(label_U.get_top(), U.get_bottom(), buff=0.1, color=BLUE)
+        arrow_S = Arrow(label_S.get_top(), Sigma.get_bottom(), buff=0.1, color=YELLOW)
+        arrow_V = Arrow(label_V.get_top(), VT.get_bottom(), buff=0.1, color=GREEN)
+
+        self.play(FadeIn(label_S), Create(arrow_S))
+        self.wait(1)
+        self.play(FadeIn(label_U, label_V), Create(arrow_U), Create(arrow_V))
         self.wait(2)
-        self.play(expr.animate.to_edge(UP, buff=2.0))
-
-        label_S = Text("Chéo chữ nhật", font="Arial", font_size=40).scale(0.5).next_to(Sigma, DOWN, buff=1.0)
-        label_U = Text("Trực giao", font="Arial", font_size=40).scale(0.5).next_to(label_S, LEFT, buff=2.0)
-        label_V = Text("Trực giao", font="Arial", font_size=40).scale(0.5).next_to(label_S, RIGHT, buff=2.0)
-
-        arrow_U = Arrow(label_U.get_top(), U.get_bottom())
-        arrow_S = Arrow(label_S.get_top(), Sigma.get_bottom())
-        arrow_V = Arrow(label_V.get_top(), VT.get_bottom())
-
-        self.play(FadeIn(label_S))
-        self.play(Create(arrow_S))
-        self.wait(2)
-
-        self.play(FadeIn(label_U, label_V))
-        self.play(Create(arrow_U), Create(arrow_V))
 
         self.play(FadeOut(VGroup(label_U, label_S, label_V, arrow_U, arrow_S, arrow_V)))
 
-        sigma_copy = Sigma.copy()
-        A_copy = A.copy()
+        # ===== 2. Minh họa ma trận Sigma và A =====
+        # Sử dụng dạng MobjectTable cho gọn và chuẩn thay vì tạo vòng lặp Dot thủ công
+        grid_S = MobjectTable(
+            [[Dot(radius=0.05, color=YELLOW) for _ in range(3)] for _ in range(2)],
+            include_outer_lines=True
+        ).scale(0.5)
+        
+        grid_A = MobjectTable(
+            [[Dot(radius=0.05, color=WHITE) for _ in range(3)] for _ in range(2)],
+            include_outer_lines=True
+        ).scale(0.5)
 
-        rows, cols = 2, 3
+        # Định dạng bracket
+        matrix_Sigma = VGroup(MathTex(r"\left[", font_size=80), grid_S, MathTex(r"\right]", font_size=80)).arrange(RIGHT, buff=0.1)
+        matrix_A = VGroup(MathTex(r"\left[", font_size=80), grid_A, MathTex(r"\right]", font_size=80)).arrange(RIGHT, buff=0.1)
 
-        gridA = VGroup()
-        for i in range(rows):
-            for j in range(cols):
-                box = Dot()
-                box.move_to([j - cols/2, rows/2 - i, 0])
-                gridA.add(box)
+        # Đẩy 2 ma trận lên trên một chút (chỉ shift DOWN * 0.5 thay vì 1) để lấy chỗ phía dưới
+        matrices_group = VGroup(matrix_A, matrix_Sigma).arrange(RIGHT, buff=2).shift(DOWN * 0.5)
+        
+        size_text_A = Text("2 x 3", font="Times New Roman", font_size=20).next_to(matrix_A, DOWN)
+        size_text_S = Text("2 x 3", font="Times New Roman", font_size=20).next_to(matrix_Sigma, DOWN)
+        
+        # SỬA LỖI Ở ĐÂY: Dời eq_condition xuống phía dưới cụm ma trận và căn giữa
+        eq_condition = MathTex(r"\sigma_1 \ge \sigma_2 \ge \cdots \ge \sigma_k \ge 0", font_size=36)
+        eq_condition.next_to(matrices_group, DOWN, buff=1.2).set_x(0)
+        self.wait(2)
+        
+        # Animation nối Sigma và A xuống mô hình lưới
+        arrow_from_A = Arrow(A.get_bottom(), matrix_A.get_top(), color=WHITE)
+        arrow_from_S = Arrow(Sigma.get_bottom(), matrix_Sigma.get_top(), color=YELLOW)
 
-        grid = VGroup()
-        for i in range(rows):
-            for j in range(cols):
-                box = Dot(radius=0.01)  # small invisible anchor
-                box.move_to([j - cols / 2, rows / 2 - i, 0])
-                grid.add(box)
+        self.play(Create(arrow_from_A), Create(arrow_from_S))
+        self.play(FadeIn(matrix_A), FadeIn(matrix_Sigma))
+        self.play(Write(size_text_A), Write(size_text_S))
+        self.wait(0.5)
+        
+        # Hiện điều kiện các sigma một cách riêng biệt cho dễ theo dõi
+        self.play(Write(eq_condition))
+        self.wait(3)
 
-        grid.set_stroke(width=2)
+        self.play(FadeOut(VGroup(arrow_from_A, arrow_from_S, matrix_A, matrix_Sigma, size_text_A, size_text_S, eq_condition)))
 
-        left_bracket1 = MathTex(r"\left[").scale(2.5)
-        right_bracket1 = MathTex(r"\right]").scale(2.5)
-        left_bracket2 = left_bracket1.copy()
-        right_bracket2 = right_bracket1.copy()
-
-        left_bracket2.next_to(gridA, LEFT)
-        right_bracket2.next_to(gridA, RIGHT)
-        left_bracket1.next_to(grid, LEFT)
-        right_bracket1.next_to(grid, RIGHT)
-
-        matrix_frame = VGroup(left_bracket1, grid, right_bracket1)
-        matrix_frame.to_edge(DOWN, buff=1.0)
-
-        left_bracket2=left_bracket1.copy()
-        right_bracket2=right_bracket1.copy()
-
-        left_bracket2.next_to(gridA, LEFT)
-        right_bracket2.next_to(gridA, RIGHT)
-
-        matrix_frame2 = VGroup(left_bracket2, gridA, right_bracket2)
-        matrix_frame2.next_to(matrix_frame, LEFT, buff=1.0)
-
+        # ===== 3. Chứng minh A^T A (Tìm V và Sigma) =====
+        self.play(expr.animate.move_to(ORIGIN))
         self.wait(1)
 
-        self.play(Create(matrix_frame), Create(matrix_frame2))
+        # Sử dụng TransformMatchingTex để tự động map các biến giống nhau
+        step1 = MathTex("A^T A", "=", "(", "U", r"\Sigma", "V^T", ")^T", "(", "U", r"\Sigma", "V^T", ")", font_size=48)
+        step1.set_color_by_tex("U", BLUE).set_color_by_tex(r"\Sigma", YELLOW).set_color_by_tex("V^T", GREEN)
+        
+        self.play(ReplacementTransform(expr, step1))
+        self.wait(1.5)
 
-        self.play(
-            Transform(sigma_copy, matrix_frame),
-            Transform(A_copy, matrix_frame2),
-        )
-        size_text1 = Text("2 x 3", font="Arial").scale(0.5).next_to(matrix_frame, DOWN)
-        size_text2 = Text("2 x 3", font="Arial").scale(0.5).next_to(matrix_frame2, DOWN)
-        eq = MathTex(r"\sigma_1 \ge \sigma_2 \ge \cdots \ge \sigma_k \ge 0")
-        eq.next_to(matrix_frame, RIGHT, buff=1.0)
-        self.play(Write(eq))
-        self.play(Write(size_text1), Write(size_text2))
+        step2 = MathTex("A^T A", "=", "V", r"\Sigma^T", "U^T", "U", r"\Sigma", "V^T", font_size=48)
+        step2.set_color_by_tex("U", BLUE).set_color_by_tex("U^T", BLUE).set_color_by_tex(r"\Sigma", YELLOW).set_color_by_tex("V", GREEN).set_color_by_tex("V^T", GREEN)
+        
+        self.play(TransformMatchingTex(step1, step2))
+        self.wait(1.5)
 
-        self.wait(2)
-        arrow1 = Arrow(A.get_bottom(), matrix_frame2.get_top())
-        arrow2 = Arrow(Sigma.get_bottom(), matrix_frame.get_top())
-        self.play(Create(arrow1), Create(arrow2))
-        rows, cols = 2, 3
-        grid2 = VGroup()
-
-        for i in range(rows):
-            for j in range(cols):
-                if i == j:
-                    val = MathTex(rf"\sigma_{{{i + 1}}}").scale(0.6)
-                    val.move_to(grid[i * cols + j].get_center())
-                    grid2.add(val)
-
-        self.wait(2)
-
-        self.play(LaggedStart(*[FadeIn(x) for x in grid2], lag_ratio=0.3))
-
-        self.wait(7)
-        self.play(FadeOut(arrow1, arrow2, sigma_copy, matrix_frame, matrix_frame2, A_copy, grid2, size_text1, size_text2, eq))
-        self.play(Transform(expr, expr_cop))
-
-        break1 = MathTex("A^T A = U \\Sigma V^T")
-        self.play(Transform(expr, break1))
-        self.wait(2)
-
-        break2 = MathTex("A^T A = (U \\Sigma V^T)^T U \\Sigma V^T")
-        self.play(Transform(expr, break2))
-        self.wait(2)
-
-        break3 = MathTex("A^T A = V \\Sigma^T U^T U \\Sigma V^T")
-
-        self.play(Transform(expr, break3))
-        self.wait(2)
-        step2 = MathTex(
-            r"A^T A", " = ", "V",  r"\Sigma^T \Sigma", r"V^T"
-        )
-        self.play(ReplacementTransform(expr, step2))
-        self.wait(2)
-        self.play(step2.animate.to_edge(UP, buff=2.0))
-        second_eq = MathTex(r"A^T A", " = ", "P", "D", r"P^T")
-        second_eq.next_to(step2, DOWN, buff=2.0)
-        arrow3=Arrow(second_eq[2].get_top(), step2[2].get_bottom())
-        arrow4 = Arrow(second_eq[3].get_top(), step2[3].get_bottom())
-        self.play(Write(second_eq))
-        self.play(Create(arrow4), Create(arrow3))
-        self.wait(2)
-        self.play(FadeOut(step2, arrow3, arrow4, second_eq))
-
-        identity = MathTex(
-            r"\Sigma^T \Sigma = D"
-        ).scale(1)
-
-        self.play((identity.animate.to_edge(UP, buff=1.0)))
-        self.wait(2)
-        sigma_prod = MathTex(
-            r"\begin{bmatrix}",
-            r"\sigma_1^2 & 0 & 0 \\",
-            r"0 & \sigma_2^2 & 0 \\",
-            r"0 & 0 & \cdots",
-            r"\end{bmatrix}"
-        ).scale(0.9)
-        self.play(Write(sigma_prod.to_edge(LEFT, buff=4)))
-        self.wait(2)
-        D_matrix = MathTex(
-            r"=",
-            r"\begin{bmatrix}",
-            r"\lambda_1 & 0 & 0 \\",
-            r"0 & \lambda_2 & 0 \\",
-            r"0 & 0 & \cdots",
-            r"\end{bmatrix}"
-        ).scale(0.9)
-
-        D_matrix.next_to(sigma_prod, RIGHT)
-
-        self.play(Write(D_matrix))
-        self.wait(2)
-        self.play(FadeOut(sigma_prod, D_matrix, identity))
-        title = Text("U =", font="Arial", font_size=28).to_edge(UP)
-        self.play(Write(title))
+        # Ghi chú U^T U = I
+        note_I = MathTex("U^T U = I", font_size=36, color=GRAY).next_to(step2, UP)
+        self.play(Write(note_I))
         self.wait(1)
 
-        step1 = MathTex(r"u_i = \frac{1}{\sigma_i} A v_i")
-        self.play(Write(step1))
-        self.wait(2)
+        step3 = MathTex("A^T A", "=", "V", r"(\Sigma^T \Sigma)", "V^T", font_size=48)
+        step3.set_color_by_tex(r"\Sigma", YELLOW).set_color_by_tex("V", GREEN).set_color_by_tex("V^T", GREEN)
+        
+        self.play(TransformMatchingTex(step2, step3), FadeOut(note_I))
+        self.wait(1.5)
 
-        step2 = MathTex(
-            r"u_i = \frac{A v_i}{\|A v_i\|}"
+        self.play(step3.animate.to_edge(UP, buff=1.5))
+
+        # So sánh với Eigendecomposition
+        eig_eq = MathTex("A^T A", "=", "P", "D", "P^T", font_size=48)
+        eig_eq.next_to(step3, DOWN, buff=1.5)
+        
+        arrow_V_P = DoubleArrow(step3[2].get_bottom(), eig_eq[2].get_top(), buff=0.1, color=GREEN)
+        arrow_S_D = DoubleArrow(step3[3].get_bottom(), eig_eq[3].get_top(), buff=0.1, color=YELLOW)
+
+        self.play(Write(eig_eq))
+        self.play(Create(arrow_V_P), Create(arrow_S_D))
+        self.wait(3)
+
+        self.play(FadeOut(VGroup(step3, eig_eq, arrow_V_P, arrow_S_D)))
+
+        # ===== 4. Tính toán Sigma (D) =====
+        identity = MathTex(r"\Sigma^T \Sigma = D", font_size=48).to_edge(UP, buff=1.5)
+        self.play(Write(identity))
+
+        sigma_matrix = MathTex(
+            r"\begin{bmatrix} \sigma_1^2 & 0 & 0 \\ 0 & \sigma_2^2 & 0 \\ 0 & 0 & \cdots \end{bmatrix}",
+            font_size=40
         )
-        self.play(ReplacementTransform(step1, step2))
-        self.wait(2)
-
-        step3 = MathTex(
-            r"U = [u_1 \; u_2 \; \cdots \; u_k]"
+        lambda_matrix = MathTex(
+            r"= \begin{bmatrix} \lambda_1 & 0 & 0 \\ 0 & \lambda_2 & 0 \\ 0 & 0 & \cdots \end{bmatrix}",
+            font_size=40
         )
-        self.play(ReplacementTransform(step2, step3))
+
+        matrix_group = VGroup(sigma_matrix, lambda_matrix).arrange(RIGHT, buff=0.5)
+        
+        self.play(Write(sigma_matrix))
+        self.play(Write(lambda_matrix))
+        self.wait(3)
+
+        self.play(FadeOut(VGroup(identity, matrix_group)))
+
+        # ===== 5. Tìm U =====
+        title_U = Text("Tìm U", font="Times New Roman", font_size=32, color=BLUE).to_edge(UP, buff=1.0)
+        self.play(Write(title_U))
+
+        u_step1 = MathTex(r"A V = U \Sigma \implies U = A V \Sigma^{-1}", font_size=48)
+        self.play(Write(u_step1))
         self.wait(2)
 
-        step4 = MathTex(
-            r"U = A V \Sigma^{-1}"
-        )
-        self.play(ReplacementTransform(step3, step4))
+        u_step2 = MathTex(r"u_i = \frac{1}{\sigma_i} A v_i", font_size=48)
+        self.play(ReplacementTransform(u_step1, u_step2))
         self.wait(2)
 
-        note = MathTex(
-            r"\sigma_i \neq 0"
-        ).scale(0.8)
-        note.next_to(step4, DOWN)
-
-        self.play(FadeIn(note))
+        u_step3 = MathTex(r"u_i = \frac{A v_i}{\|A v_i\|}", font_size=48)
+        self.play(ReplacementTransform(u_step2, u_step3))
         self.wait(2)
 
-        self.play(FadeOut(step4, note, title))
+        u_step4 = MathTex(r"U = [u_1 \; u_2 \; \cdots \; u_k]", font_size=48)
+        self.play(ReplacementTransform(u_step3, u_step4))
+        self.wait(2)
 
-
-# Scene 2 - TINH TOAN SVD
+        self.play(FadeOut(VGroup(u_step4, title_U, tex)))
+        self.wait(1)
+        
+# Scene 7 - SVD Demonstration
 class SVDExample(Scene):
     def construct(self):
-        tex = Text("TÍNH TOÁN SVD",font="Arial", font_size=15)
-        tex.to_corner(UL, buff=0.25)
-        self.play(Write(tex))
-        A = MathTex(r"A = \begin{bmatrix} 1 & 0 & 1 \\ -2 & 1 & 0 \end{bmatrix}")
-        A_saved = MathTex(r"\begin{bmatrix} 1 & 0 & 1 \\ -2 & 1 & 0 \end{bmatrix} = ")
-        self.play(Write(A))
-        self.wait(2)
+        # ===== TIÊU ĐỀ =====
+        title = Text("Thực hành phân rã SVD", font_size=15, color=GREY).to_corner(UL, buff=0.25)
+        self.play(Write(title))
 
-        self.play(FadeOut(A))
+        # Giới thiệu ma trận A
+        A_mat = MathTex(r"A = \begin{bmatrix} 1 & 0 & 1 \\ -2 & 1 & 0 \end{bmatrix}")
+        self.play(FadeIn(A_mat))
+        self.wait(1)
+        
+        # Đưa A lên góc phải để làm tham chiếu
+        self.play(A_mat.animate.to_corner(UR, buff=0.25).scale(0.8))
 
-        ATA_step = MathTex(
-            r"A^T A =",
-            r"\begin{bmatrix} 1 & -2 \\ 0 & 1 \\ 1 & 0 \end{bmatrix}",
-            r"\begin{bmatrix} 1 & 0 & 1 \\ -2 & 1 & 0 \end{bmatrix}"
-        ).scale(0.9)
+        # ===== BƯỚC 1: TÍNH A^T A VÀ TRỊ RIÊNG =====
+        # Sửa lỗi hiển thị mũ bằng cách ghép Text và MathTex
+        step1_title = VGroup(
+            Text("Bước 1: Tính", font_size=22, color=YELLOW),
+            MathTex(r"A^T A", color=YELLOW).scale(0.8),
+            Text("và tìm các trị riêng", font_size=22, color=YELLOW)
+        ).arrange(RIGHT, buff=0.1).next_to(title, DOWN, buff=0.5).to_edge(LEFT, buff=0.5)
+        
+        self.play(Write(step1_title))
 
-        self.play(Write(ATA_step))
-        self.wait(2)
+        ATA = MathTex(r"A^T A = \begin{bmatrix} 1 & -2 \\ 0 & 1 \\ 1 & 0 \end{bmatrix} \begin{bmatrix} 1 & 0 & 1 \\ -2 & 1 & 0 \end{bmatrix} = \begin{bmatrix} 5 & -2 & 1 \\ -2 & 1 & 0 \\ 1 & 0 & 1 \end{bmatrix}").scale(0.8)
+        ATA.next_to(step1_title, DOWN, buff=0.5).set_x(0)
+        
+        self.play(Write(ATA))
+        self.wait(1.5)
 
-        ATA_result = MathTex(
-            r"A^T A = \begin{bmatrix} 5 & -2 & 1 \\ -2 & 1 & 0 \\ 1 & 0 & 1 \end{bmatrix}"
-        )
+        # Tính định thức nhanh
+        det1 = MathTex(r"\det(A^T A - \lambda I) = 0").scale(0.8)
+        det2 = MathTex(r"\Rightarrow (1-\lambda)\cdot\lambda\cdot(\lambda-6) = 0").scale(0.8)
+        eigvals = MathTex(r"\Rightarrow \lambda_1 = 6,\ \lambda_2 = 1,\ \lambda_3 = 0").scale(0.8)
 
-        self.play(ReplacementTransform(ATA_step, ATA_result))
-        self.wait(2)
+        det_group = VGroup(det1, det2, eigvals).arrange(DOWN, buff=0.4).next_to(ATA, DOWN, buff=0.5).set_x(0)
 
-        self.play(FadeOut(ATA_result))
-
-        det1 = MathTex(
-            r"\det(A^T A - \lambda I) = 0"
-        )
         self.play(Write(det1))
+        self.wait(0.5)
+        self.play(TransformFromCopy(det1, det2))
+        self.wait(0.5)
+        self.play(Write(eigvals))
+        self.wait(2)
+
+        self.play(FadeOut(ATA), FadeOut(det_group), FadeOut(step1_title))
+
+        # ===== BƯỚC 2: TÌM MA TRẬN V^T TỪ VECTƠ RIÊNG =====
+        step2_title = VGroup(
+            Text("Bước 2: Tìm vectơ riêng của", font_size=22, color=YELLOW),
+            MathTex(r"A^T A", color=YELLOW).scale(0.8),
+            Text("để xây dựng", font_size=22, color=YELLOW),
+            MathTex(r"V^T", color=YELLOW).scale(0.8)
+        ).arrange(RIGHT, buff=0.1).move_to(step1_title, aligned_edge=LEFT)
+        
+        self.play(Write(step2_title))
+
+        # Nơi lưu 3 vectơ riêng ở góc dưới
+        v_final_group = VGroup(
+            MathTex(r"v_1 = \frac{1}{\sqrt{30}} \begin{bmatrix} 5 \\ -2 \\ 1 \end{bmatrix}"),
+            MathTex(r"v_2 = \frac{1}{\sqrt{5}} \begin{bmatrix} 0 \\ 1 \\ 2 \end{bmatrix}"),
+            MathTex(r"v_3 = \frac{1}{\sqrt{6}} \begin{bmatrix} -1 \\ -2 \\ 1 \end{bmatrix}")
+        ).arrange(RIGHT, buff=0.8).scale(0.65).to_edge(DOWN, buff=0.5)
+
+        # Trình diễn giải hệ phương trình
+        for i, (l_val, v_mat_str, sol_str) in enumerate([
+            (6, r"\begin{bmatrix} -1 & -2 & 1 \\ -2 & -5 & 0 \\ 1 & 0 & -5 \end{bmatrix}", r"\frac{1}{\sqrt{30}} \begin{bmatrix} 5 \\ -2 \\ 1 \end{bmatrix}"),
+            (1, r"\begin{bmatrix} 4 & -2 & 1 \\ -2 & 0 & 0 \\ 1 & 0 & 0 \end{bmatrix}", r"\frac{1}{\sqrt{5}} \begin{bmatrix} 0 \\ 1 \\ 2 \end{bmatrix}"),
+            (0, r"\begin{bmatrix} 5 & -2 & 1 \\ -2 & 1 & 0 \\ 1 & 0 & 1 \end{bmatrix}", r"\frac{1}{\sqrt{6}} \begin{bmatrix} -1 \\ -2 \\ 1 \end{bmatrix}")
+        ]):
+            l_title = MathTex(fr"\lambda_{{{i+1}}} = {l_val} \Rightarrow (A^T A - {l_val}I)v = 0").scale(0.8).next_to(step2_title, DOWN, buff=0.4, aligned_edge=LEFT)
+            l_eq = MathTex(fr"{v_mat_str} v = 0").scale(0.7)
+            
+            l_sol_txt = Text("Chuẩn hoá: ", font_size=20)
+            l_sol_math = MathTex(fr"v_{{{i+1}}} = {sol_str}").scale(0.7)
+            l_sol = VGroup(l_sol_txt, l_sol_math).arrange(RIGHT, buff=0.2)
+            
+            l_display = VGroup(l_eq, l_sol).arrange(DOWN, buff=0.4).next_to(l_title, DOWN, buff=0.4).set_x(0)
+            
+            self.play(Write(l_title))
+            self.play(Write(l_eq))
+            self.wait(0.5)
+            self.play(Write(l_sol))
+            self.wait(1)
+            self.play(TransformFromCopy(l_sol_math, v_final_group[i]))
+            self.play(FadeOut(l_title), FadeOut(l_display))
+
+        # Kéo các vectơ v lên giữa màn hình để gộp thành V^T
+        self.play(v_final_group.animate.next_to(step2_title, DOWN, buff=0.5).set_x(0))
         self.wait(1)
 
-        det2 = MathTex(
-            r"\det \begin{bmatrix}"
-            r"5-\lambda & -2 & 1 \\"
-            r"-2 & 1-\lambda & 0 \\"
-            r"1 & 0 & 1-\lambda"
-            r"\end{bmatrix} = 0"
-        ).scale(0.9)
+        VT_mat = MathTex(
+            r"V^T = \begin{bmatrix} v_1^T \\ v_2^T \\ v_3^T \end{bmatrix} = \begin{bmatrix} \frac{5}{\sqrt{30}} & \frac{-2}{\sqrt{30}} & \frac{1}{\sqrt{30}} \\ 0 & \frac{1}{\sqrt{5}} & \frac{2}{\sqrt{5}} \\ \frac{-1}{\sqrt{6}} & \frac{-2}{\sqrt{6}} & \frac{1}{\sqrt{6}} \end{bmatrix}"
+        ).scale(0.7).next_to(v_final_group, DOWN, buff=0.6)
 
-        self.play(ReplacementTransform(det1, det2))
+        self.play(Write(VT_mat))
         self.wait(2)
+        
+        # Xóa sạch V^T và title đi để giải phóng không gian cho bước sau
+        self.play(FadeOut(v_final_group), FadeOut(step2_title), FadeOut(VT_mat))
 
-        det3 = MathTex(
-            r"(5-\lambda)"
-            r"\begin{vmatrix} 1-\lambda & 0 \\ 0 & 1-\lambda \end{vmatrix}"
-            r" - (-2)"
-            r"\begin{vmatrix} -2 & 0 \\ 1 & 1-\lambda \end{vmatrix}"
-            r" + 1"
-            r"\begin{vmatrix} -2 & 1-\lambda \\ 1 & 0 \end{vmatrix}"
-        ).scale(0.8)
+        # ===== BƯỚC 3: XÂY DỰNG SIGMA =====
+        step3_title = VGroup(
+            Text("Bước 3: Xây dựng ma trận", font_size=22, color=YELLOW),
+            MathTex(r"\Sigma", color=YELLOW).scale(0.8)
+        ).arrange(RIGHT, buff=0.1).move_to(step1_title, aligned_edge=LEFT)
+        
+        self.play(Write(step3_title))
 
-        self.play(ReplacementTransform(det2, det3))
-        self.wait(3)
+        sigma_eq = MathTex(r"\sigma_i = \sqrt{\lambda_i} \Rightarrow \sigma_1 = \sqrt{6}, \quad \sigma_2 = 1").scale(0.8)
+        sigma_eq.next_to(step3_title, DOWN, buff=0.6).set_x(0)
+        
+        Sigma_mat = MathTex(r"\Sigma = \begin{bmatrix} \sqrt{6} & 0 & 0 \\ 0 & 1 & 0 \end{bmatrix}").scale(0.8)
+        Sigma_mat.next_to(sigma_eq, DOWN, buff=0.6)
 
-        det4 = MathTex(
-            r"(5-\lambda)(1-\lambda)^2"
-            r" - (-2)\big((-2)(1-\lambda)\big)"
-            r" + 1\big((-2)\cdot0 - 1(1-\lambda)\big)"
-        ).scale(0.8)
-
-        self.play(ReplacementTransform(det3, det4))
-        self.wait(3)
-
-        det5 = MathTex(
-            r"(5-\lambda)(1-\lambda)^2"
-            r" - 4(1-\lambda)"
-            r" - (1-\lambda)"
-        ).scale(0.8)
-
-        self.play(ReplacementTransform(det4, det5))
+        self.play(Write(sigma_eq))
+        self.wait(1)
+        self.play(Write(Sigma_mat))
         self.wait(2)
+        
+        # Xóa sạch bảng
+        self.play(FadeOut(step3_title), FadeOut(sigma_eq), FadeOut(Sigma_mat))
 
-        det6 = MathTex(
-            r"(1-\lambda)\big[(5-\lambda)(1-\lambda) - 5\big]"
-        ).scale(0.9)
+        # ===== BƯỚC 4: TÌM U =====
+        step4_title = VGroup(
+            Text("Bước 4: Tính U bằng công thức", font_size=22, color=YELLOW),
+            MathTex(r"u_i = \frac{1}{\sigma_i} A v_i", color=YELLOW).scale(0.8)
+        ).arrange(RIGHT, buff=0.1).move_to(step1_title, aligned_edge=LEFT)
+        
+        self.play(Write(step4_title))
 
-        self.play(ReplacementTransform(det5, det6))
-        self.wait(2)
+        u1_calc = MathTex(
+            r"u_1", r"=", r"\frac{1}{\sqrt{6}} \begin{bmatrix} 1 & 0 & 1 \\ -2 & 1 & 0 \end{bmatrix} \left( \frac{1}{\sqrt{30}} \begin{bmatrix} 5 \\ -2 \\ 1 \end{bmatrix} \right)", r"=", r"\frac{1}{\sqrt{5}} \begin{bmatrix} 1 \\ -2 \end{bmatrix}"
+        ).scale(0.7).next_to(step4_title, DOWN, buff=0.5).set_x(0)
 
-        det7 = MathTex(
-            r"(1-\lambda)(\lambda^2 -6\lambda +5)"
-        ).scale(0.9)
+        u2_calc = MathTex(
+            r"u_2", r"=", r"\frac{1}{1} \begin{bmatrix} 1 & 0 & 1 \\ -2 & 1 & 0 \end{bmatrix} \left( \frac{1}{\sqrt{5}} \begin{bmatrix} 0 \\ 1 \\ 2 \end{bmatrix} \right)", r"=", r"\frac{1}{\sqrt{5}} \begin{bmatrix} 2 \\ 1 \end{bmatrix}"
+        ).scale(0.7).next_to(u1_calc, DOWN, buff=0.5).set_x(0)
 
-        self.play(ReplacementTransform(det6, det7))
-        self.wait(2)
-
-        det8 = MathTex(
-            r"(1-\lambda)(\lambda-1)(\lambda-6) = 0"
-        ).scale(1)
-
-        self.play(ReplacementTransform(det7, det8))
-        self.wait(2)
-
-        eigvals_result = MathTex(
-            r"\lambda_1 = 6,\quad \lambda_2 = 1,\quad \lambda_3 = 0"
-        )
-
-        self.play(ReplacementTransform(det8, eigvals_result))
-        self.wait(2)
-
-        self.play(FadeOut(eigvals_result))
-
-        lambda1 = MathTex(r"\lambda = 6")
-        self.play(Write(lambda1))
-        self.wait(2)
-        eq1 = MathTex(
-            r"(A^T A - 6I)v = 0"
-        )
-        self.play(Transform(lambda1, eq1))
+        self.play(Write(u1_calc[0:3]))
+        self.wait(1)
+        self.play(Write(u1_calc[3:]))
+        
+        self.play(Write(u2_calc[0:3]))
+        self.wait(1)
+        self.play(Write(u2_calc[3:]))
         self.wait(1)
 
-        matrix1 = MathTex(
-            r"\begin{bmatrix}"
-            r"-1 & -2 & 1 \\"
-            r"-2 & -5 & 0 \\"
-            r"1 & 0 & -5"
-            r"\end{bmatrix} v = 0"
-        ).scale(0.9)
-
-        self.play(Transform(lambda1, matrix1))
+        U_mat = MathTex(r"U = [u_1 \quad u_2] = \frac{1}{\sqrt{5}} \begin{bmatrix} 1 & 2 \\ -2 & 1 \end{bmatrix}").scale(0.8)
+        U_mat.next_to(u2_calc, DOWN, buff=0.6).set_x(0)
+        
+        self.play(Write(U_mat))
         self.wait(2)
 
-        v1 = MathTex(
-            r"v_1 = \begin{bmatrix} 5 \\ -2 \\ 1 \end{bmatrix}"
-        )
-        self.play(Transform(lambda1, v1))
-        self.wait(2)
+        # Xóa sạch bảng để chuẩn bị kết luận
+        self.play(FadeOut(step4_title), FadeOut(u1_calc), FadeOut(u2_calc), FadeOut(U_mat))
 
-        v1_norm = MathTex(
-            r"v_1 = \frac{1}{\sqrt{30}} \begin{bmatrix} 5 \\ -2 \\ 1 \end{bmatrix}"
-        )
-        self.play(Transform(lambda1, v1_norm))
-        self.wait(2)
+        # ===== BƯỚC 5: TỔNG KẾT A = U \Sigma V^T =====
+        final_title = VGroup(
+            Text("Kết luận:", font_size=28, color=YELLOW),
+            MathTex(r"A = U \Sigma V^T", color=YELLOW)
+        ).arrange(RIGHT, buff=0.2).to_edge(UP, buff=1.0)
+        
+        self.play(Write(final_title))
 
-        self.play(FadeOut(lambda1))
+        # Ẩn A tham chiếu cũ đi
+        self.play(FadeOut(A_mat))
 
-        lambda2 = MathTex(r"\lambda = 1")
-        self.play(Write(lambda2))
-        self.wait(2)
+        # Hiển thị biểu thức cuối cùng gom lại tất cả các ma trận đã tính
+        final_eq = MathTex(
+            r"A = ",
+            r"\left( \frac{1}{\sqrt{5}} \begin{bmatrix} 1 & 2 \\ -2 & 1 \end{bmatrix} \right)", 
+            r"\begin{bmatrix} \sqrt{6} & 0 & 0 \\ 0 & 1 & 0 \end{bmatrix}",
+            r"\begin{bmatrix} \frac{5}{\sqrt{30}} & \frac{-2}{\sqrt{30}} & \frac{1}{\sqrt{30}} \\ 0 & \frac{1}{\sqrt{5}} & \frac{2}{\sqrt{5}} \\ \frac{-1}{\sqrt{6}} & \frac{-2}{\sqrt{6}} & \frac{1}{\sqrt{6}} \end{bmatrix}"
+        ).scale(0.65).next_to(final_title, DOWN, buff=1.0)
 
-        matrix2 = MathTex(
-            r"\begin{bmatrix}"
-            r"4 & -2 & 1 \\"
-            r"-2 & 0 & 0 \\"
-            r"1 & 0 & 0"
-            r"\end{bmatrix} v = 0"
-        ).scale(0.9)
+        # Chú thích nhỏ ở dưới để đánh dấu U, Sigma, V^T
+        brace_U = Brace(final_eq[1], DOWN, color=BLUE)
+        text_U = brace_U.get_tex("U").scale(0.8).set_color(BLUE)
+        
+        brace_S = Brace(final_eq[2], DOWN, color=YELLOW)
+        text_S = brace_S.get_tex(r"\Sigma").scale(0.8).set_color(YELLOW)
+        
+        brace_VT = Brace(final_eq[3], DOWN, color=GREEN)
+        text_VT = brace_VT.get_tex("V^T").scale(0.8).set_color(GREEN)
 
-        self.play(Transform(lambda2, matrix2))
-        self.wait(2)
-
-        v2 = MathTex(
-            r"v_2 = \begin{bmatrix} 0 \\ 1 \\ 2 \end{bmatrix}"
-        )
-        self.play(Transform(lambda2, v2))
-        self.wait(2)
-
-        v2_norm = MathTex(
-            r"v_2 = \frac{1}{\sqrt{5}} \begin{bmatrix} 0 \\ 1 \\ 2 \end{bmatrix}"
-        )
-        self.play(Transform(lambda2, v2_norm))
-        self.wait(2)
-
-        self.play(FadeOut(lambda2))
-
-        lambda3 = MathTex(r"\lambda = 0")
-        self.play(Write(lambda3))
-        self.wait(2)
-
-        matrix3 = MathTex(
-            r"A^T A v = 0"
-        )
-        self.play(Transform(lambda3, matrix3))
-        self.wait(2)
-
-        v3 = MathTex(
-            r"v_3 = \begin{bmatrix} -1 \\ -2 \\ 1 \end{bmatrix}"
-        )
-        self.play(Transform(lambda3, v3))
-        self.wait(2)
-
-        v3_norm = MathTex(
-            r"v_3 = \frac{1}{\sqrt{6}} \begin{bmatrix} -1 \\ -2 \\ 1 \end{bmatrix}"
-        )
-        self.play(Transform(lambda3, v3_norm))
-        self.wait(2)
-
-        self.play(FadeOut(lambda3))
-
-        P = MathTex(
-            r"P = \begin{bmatrix}"
-            r"\frac{5}{\sqrt{30}} & 0 & -\frac{1}{\sqrt{6}} \\"
-            r"\frac{-2}{\sqrt{30}} & \frac{1}{\sqrt{5}} & \frac{-2}{\sqrt{6}} \\"
-            r"\frac{1}{\sqrt{30}} & \frac{2}{\sqrt{5}} & \frac{1}{\sqrt{6}}"
-            r"\end{bmatrix}"
-        ).scale(0.9)
-
-        self.play(Write(P))
-        self.wait(3)
-
-        V = MathTex(r"V = P")
-        V.next_to(P, DOWN, buff=2.0)
-
-        self.play(Write(V))
-        self.wait(2)
-        self.play(FadeOut(P))
-        self.play(V.animate.to_edge(UP, buff=2.0))
-
-
-        vt_text = MathTex(r"V^T = P^T")
-        vt_text.next_to(V, DOWN)
-
-        self.play(Write(vt_text))
-        self.wait(2)
-
-        VT = MathTex(
-            r"V^T = \begin{bmatrix}"
-            r"\frac{5}{\sqrt{30}} & \frac{-2}{\sqrt{30}} & \frac{1}{\sqrt{30}} \\"
-            r"0 & \frac{1}{\sqrt{5}} & \frac{2}{\sqrt{5}} \\"
-            r"\frac{-1}{\sqrt{6}} & \frac{-2}{\sqrt{6}} & \frac{1}{\sqrt{6}}"
-            r"\end{bmatrix}"
-        ).scale(0.9)
-        VT_saved= MathTex(
-            r"\begin{bmatrix}"
-            r"\frac{5}{\sqrt{30}} & \frac{-2}{\sqrt{30}} & \frac{1}{\sqrt{30}} \\"
-            r"0 & \frac{1}{\sqrt{5}} & \frac{2}{\sqrt{5}} \\"
-            r"\frac{-1}{\sqrt{6}} & \frac{-2}{\sqrt{6}} & \frac{1}{\sqrt{6}}"
-            r"\end{bmatrix}"
-        ).scale(0.9)
-        VT.next_to(vt_text, DOWN)
-
-        self.play(Write(VT))
-        self.wait(3)
-        self.play(FadeOut(VT, vt_text, V))
-
-        diag1 = MathTex(r"A^T A = P D P^T")
-        self.play(Write(diag1))
-        self.wait(2)
-
-        step1 = MathTex(r"A^T A = V D V^T")
-        self.play(ReplacementTransform(diag1, step1))
-        self.wait(2)
-
-        step2 = MathTex(r"A^T A = V \Sigma^T \Sigma V^T")
-        self.play(ReplacementTransform(step1, step2))
-        self.wait(2)
-
-        step3 = MathTex(r"D = \Sigma^T \Sigma")
-        self.play(ReplacementTransform(step2, step3))
-        self.wait(2)
-
-        self.play(step3.animate.to_edge(UP, buff=1.0))
-        sigma_sq = MathTex(
-            r"\Sigma^T \Sigma = \begin{bmatrix}"
-            r"\sigma_1^2 & 0 & 0 \\"
-            r"0 & \sigma_2^2 & 0 \\"
-            r"0 & 0 & 0"
-            r"\end{bmatrix}"
-        )
-        self.play(Write(sigma_sq.next_to(step3, DOWN, 1.5)))
-        self.wait(2)
-
-        D = MathTex(
-            r"D = \begin{bmatrix} 6 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 0 \end{bmatrix}"
-        )
-
-        D.next_to(sigma_sq, DOWN)
-
-        self.play(Write(D))
-        self.wait(2)
-        self.play(FadeOut(sigma_sq, D, step3))
-
-        match = MathTex(
-            r"\sigma_1^2 = 6,\quad \sigma_2^2 = 1"
-        )
-        self.play(Write(match))
-        self.wait(2)
-
-        sigma_final = MathTex(
-            r"\sigma_i = \sqrt{\lambda_i}"
-        ).scale(1.2)
-
-        self.play(ReplacementTransform(match, sigma_final))
-        self.wait(3)
-
-        Sigma = MathTex(
-            r"\Sigma = \begin{bmatrix} \sqrt{6} & 0 & 0 \\ 0 & 1 & 0 \end{bmatrix}"
-        )
-        Sigma_saved = MathTex(
-            r"\begin{bmatrix} \sqrt{6} & 0 & 0 \\ 0 & 1 & 0 \end{bmatrix}"
-        )
-        self.play(ReplacementTransform(sigma_final, Sigma))
-        self.wait(2)
-        self.play(FadeOut(Sigma))
-
-
-        U_rule = MathTex(r"u_i = \frac{1}{\sigma_i} A v_i")
-        self.play(Write(U_rule))
-        self.wait(2)
-
-
-        step1 = MathTex(
-            r"u_1 = \frac{1}{\sqrt{6}} A v_1"
-        )
-        self.play(ReplacementTransform(U_rule, step1))
-        self.wait(2)
-
-        step2 = MathTex(
-            r"= \frac{1}{\sqrt{6}} "
-            r"\begin{bmatrix} 1 & 0 & 1 \\ -2 & 1 & 0 \end{bmatrix}"
-            r"\begin{bmatrix} \frac{5}{\sqrt{30}} \\ \frac{-2}{\sqrt{30}} \\ \frac{1}{\sqrt{30}} \end{bmatrix}"
-        ).scale(0.8)
-
-        self.play(ReplacementTransform(step1, step2))
-        self.wait(3)
-
-        step3 = MathTex(
-            r"= \frac{1}{\sqrt{6}} \cdot \frac{1}{\sqrt{30}} "
-            r"\begin{bmatrix} 6 \\ -12 \end{bmatrix}"
-        ).scale(0.8)
-
-        self.play(ReplacementTransform(step2, step3))
-        self.wait(3)
-
-        step4 = MathTex(
-            r"= \frac{1}{\sqrt{5}} \begin{bmatrix} 1 \\ -2 \end{bmatrix}"
-        )
-
-        self.play(ReplacementTransform(step3, step4))
-        self.wait(3)
-
-        u1 = step4.copy()
-
-        step5 = MathTex(
-            r"u_2 = \frac{1}{1} A v_2"
-        )
-        self.play(ReplacementTransform(step4, step5))
-        self.wait(2)
-
-        step6 = MathTex(
-            r"= \frac{1}{\sqrt{5}} \begin{bmatrix} 2 \\ 1 \end{bmatrix}"
-        )
-
-        self.play(ReplacementTransform(step5, step6))
-        self.wait(2)
-
-        u2 = step6.copy()
-
-        U = MathTex(
-            r"U = \frac{1}{\sqrt{5}} \begin{bmatrix} 1 & 2 \\ -2 & 1 \end{bmatrix}"
-        )
-
-        self.play(ReplacementTransform(step6, U))
-        self.wait(3)
-
-        self.play(FadeOut(U))
-        U_saved = MathTex(
-            r"\frac{1}{\sqrt{5}} \begin{bmatrix} 1 & 2 \\ -2 & 1 \end{bmatrix}"
-        )
-
-        final = MathTex(r"A = U \Sigma V^T").scale(1.5)
-        self.play(Write(final))
+        self.play(Write(final_eq))
         self.wait(1)
-
-        self.play(final.animate.to_edge(UP, buff=2.0))
-
-
-        A_saved.scale(0.9).next_to(final, DOWN, buff=1.5).to_edge(LEFT)
-        self.wait(2)
-
-        product = VGroup(
-            U_saved.copy(),
-            Sigma_saved.copy(),
-            VT_saved.copy()
-        ).arrange(RIGHT, buff=0.5)
-
-        product.next_to(A_saved, RIGHT)
-
-        self.play(Write(A_saved), FadeIn(product))
-
+        self.play(
+            GrowFromCenter(brace_U), Write(text_U),
+            GrowFromCenter(brace_S), Write(text_S),
+            GrowFromCenter(brace_VT), Write(text_VT)
+        )
         self.wait(3)
-
-# Scene 1 - TRUC QUAN HOA SVD
+        
+# Scene 8 - Visualization
 class SVDVisualization(ThreeDScene):
     def construct(self):
-        tex = Text("TRỰC QUAN HÓA SVD",font="Arial", font_size=15)
-        tex.to_corner(UL, buff=0.25)
-        self.add_fixed_in_frame_mobjects(tex)
-        self.set_camera_orientation(phi=65 * DEGREES, theta=45 * DEGREES)
+        # Camera
+        self.set_camera_orientation(phi=60 * DEGREES, theta=45 * DEGREES)
 
+        # ===== TITLE =====
+        title = Text("TRỰC QUAN HÓA SVD", font_size=15, color=GREY)
+        title.to_corner(UL)
+        self.add_fixed_in_frame_mobjects(title)
+
+        # Axes
         axes = ThreeDAxes()
-        self.play(Create(axes))
-        n_r = 12
-        n_theta = 32
-        radius = 2
+        self.play(Create(axes), run_time=1)
 
-        dots = VGroup()
-        for i in range(n_r):
-            r = radius * np.sqrt((i + 1) / n_r)
+        # ===== SPHERE (THAY CHO DOTS) =====
+        sphere = Sphere(radius=2, resolution=(20, 20))
+        sphere.set_fill(opacity=0.5)
+        sphere.set_stroke(width=0.5)
 
-            for j in range(n_theta):
-                theta = 2 * PI * j / n_theta
+        # Gradient màu (giữ cảm giác trực quan)
+        sphere.set_color_by_gradient(BLUE, GREEN, RED)
 
-                x = r * np.cos(theta)
-                y = r * np.sin(theta)
-                z = 0
+        self.play(FadeIn(sphere), run_time=1)
+        self.wait(0.5)
 
-                t = (x + radius) / (2 * radius)
-
-                t = np.clip(t, 0, 1)
-
-                color = interpolate_color(BLUE, YELLOW, t)
-
-                dot = Dot(point=[x, y, z], radius=0.035, color=color)
-                dot.set_opacity(0.85)
-
-                dots.add(dot)
-
-        center_dot = Dot(point=[0, 0, 0], radius=0.04,
-                         color=interpolate_color(BLUE, YELLOW, 0.5))
-        dots.add(center_dot)
-
-        self.play(FadeIn(dots))
-        self.wait(1)
-
-        theta_v = PI / 6
-        Vt = np.array([
-            [np.cos(theta_v), np.sin(theta_v), 0],
-            [-np.sin(theta_v), np.cos(theta_v), 0],
-            [0, 0, 1]
+        # ===== MATRICES =====
+        VT = np.array([
+            [5/np.sqrt(30), -2/np.sqrt(30), 1/np.sqrt(30)],
+            [0,             1/np.sqrt(5),   2/np.sqrt(5)],
+            [-1/np.sqrt(6), -2/np.sqrt(6),  1/np.sqrt(6)]
         ])
 
         Sigma = np.array([
-            [2, 0, 0],
-            [0, 1, 0],
-            [0, 0, 0]
+            [np.sqrt(6), 0, 0],
+            [0,          1, 0],
+            [0,          0, 0]
         ])
 
-        theta_u = PI / 4
         U = np.array([
-            [np.cos(theta_u), -np.sin(theta_u), 0],
-            [np.sin(theta_u), np.cos(theta_u), 0],
-            [0, 0, 1]
+            [1/np.sqrt(5),  2/np.sqrt(5), 0],
+            [-2/np.sqrt(5), 1/np.sqrt(5), 0],
+            [0,             0,            1]
         ])
 
-        label1 = VGroup(
-            Text("Áp dụng", font="Arial", font_size=30),
-            MathTex(r"V^T"),
-            Text("(phép xoay)", font="Arial", font_size=30)
-        ).arrange(RIGHT).to_edge(UP)
-        self.add_fixed_in_frame_mobjects(label1)
+        # ===== LABEL FUNCTION =====
+        def show_label(text1, math_tex, text2):
+            label = VGroup(
+                Text(text1, font_size=26, color=YELLOW),
+                MathTex(math_tex, color=YELLOW).scale(1.2),
+                Text(text2, font_size=26, color=YELLOW)
+            ).arrange(RIGHT, buff=0.2).to_edge(UP)
 
-        self.play(ApplyMatrix(Vt, dots), run_time=2)
-        self.wait(1)
+            self.add_fixed_in_frame_mobjects(label)
+            self.play(FadeIn(label), run_time=0.5)
+            return label
 
-        label2 = VGroup(
-            Text("Áp dụng", font="Arial", font_size=30),
-            MathTex(r"\Sigma"),
-            Text("(phép co giãn)", font="Arial", font_size=30)
-        ).arrange(RIGHT, buff=0.2).to_edge(UP)
-        self.add_fixed_in_frame_mobjects(label2)
-        self.remove(label1)
+    # ===== BƯỚC 1: Xoay bởi V^T =====
+        l_vt = show_label("1. Áp dụng", r"V^T", "(Xoay)")
+        self.play(ApplyMatrix(VT, sphere), run_time=1.5)
+        self.wait(0.5)
+        self.play(FadeOut(l_vt, shift=RIGHT))
 
-        self.play(ApplyMatrix(Sigma, dots), run_time=2)
-        self.wait(1)
+        # ===== BƯỚC 2: Co giãn bởi Sigma =====
+        l_sigma = show_label("2. Áp dụng", r"\Sigma", "(Co giãn)")
+        self.play(ApplyMatrix(Sigma, sphere), run_time=1.5)
+        self.wait(0.5)
+        self.play(FadeOut(l_sigma, shift=RIGHT))
 
-        label3 = VGroup(
-            Text("Áp dụng", font="Arial", font_size=30),
-            MathTex(r"U"),
-            Text("(phép xoay)", font="Arial", font_size=30)
-        ).arrange(RIGHT, buff=0.2).to_edge(UP)
-        self.add_fixed_in_frame_mobjects(label3)
-        self.remove(label2)
+        # ===== BƯỚC 3: Xoay bởi U =====
+        l_u = show_label("3. Áp dụng", r"U", "(Xoay)")
+        self.play(ApplyMatrix(U, sphere), run_time=1.5)
+        self.wait(0.5)
+        self.play(FadeOut(l_u, shift=RIGHT))
 
-        self.play(ApplyMatrix(U, dots), run_time=2)
-        self.wait(1)
+        # ===== CHỈ XOAY CAMERA Ở CUỐI =====
+        self.begin_ambient_camera_rotation(rate=0.1)
+        self.wait(6)
+        self.stop_ambient_camera_rotation()
 
-        final = MathTex(r"A = U \Sigma V^T").to_edge(DOWN)
-        self.add_fixed_in_frame_mobjects(final)
-
-        self.play(Write(final))
-        self.wait(2)
-
-        self.begin_ambient_camera_rotation(rate=0.2)
-        self.wait(10)
-
-# Scene 1 - UNG DUNG CUA SVD
+# Scene 9 - SVD application 1
 class SVDReconstruction(Scene):
     def construct(self):
-        tex = Text("CÁC ỨNG DỤNG CỦA SVD",font="Arial", font_size=15)
+        tex = Text("CÁC ỨNG DỤNG CỦA SVD",font="Times New Roman", font_size=15, color=GREY)
         tex.to_corner(UL, buff=0.25)
-        title = Text("Áp dụng trong ước lượng hình ảnh", font="Arial", font_size=20)
+        title = Text("Áp dụng trong ước lượng hình ảnh", font="Times New Roman", font_size=20)
         title.to_edge(UP, buff=1.0)
         self.play(Write(tex))
         self.wait(2)
@@ -940,13 +1024,13 @@ class SVDReconstruction(Scene):
             current_img_mobject = new_img
             self.wait(1)
 
-# Scene 2 - UNG DUNG CUA SVD
+# Scene 10 - SVD application 2
 class PCA(MovingCameraScene):
     def construct(self):
-        tex = Text("CÁC ỨNG DỤNG CỦA SVD",font="Arial", font_size=15)
+        tex = Text("CÁC ỨNG DỤNG CỦA SVD",font="Times New Roman", font_size=15, color=GREY)
         tex.to_corner(UL, buff=0.25)
         self.play(Write(tex))
-        title = Text("Áp dụng trong PCA", font="Arial", font_size=36)
+        title = Text("Áp dụng trong PCA", font="Times New Roman", font_size=36)
         title.to_edge(UP, buff=2.0)
         matrix_data = [
             ["STT", "Chiều cao (cm)", "Cân nặng (kg)"],
@@ -960,7 +1044,7 @@ class PCA(MovingCameraScene):
 
         table = Table(
             matrix_data,
-            element_to_mobject=lambda x: Text(x, font="Arial")
+            element_to_mobject=lambda x: Text(x, font="Times New Roman")
         )
 
         table.scale(0.5)
@@ -985,8 +1069,8 @@ class PCA(MovingCameraScene):
         ])
 
         labels = axes.get_axis_labels(
-            x_label=Text("Cân nặng (kg)", font="Arial", font_size=14),
-            y_label=Text("Chiều cao (cm)", font="Arial", font_size=14)
+            x_label=Text("Cân nặng (kg)", font="Times New Roman", font_size=14),
+            y_label=Text("Chiều cao (cm)", font="Times New Roman", font_size=14)
         )
 
         self.play(Create(axes), Write(labels))
@@ -1037,8 +1121,8 @@ class PCA(MovingCameraScene):
         )
 
         labels2 = axes2.get_axis_labels(
-            x_label=Text("Cân nặng (kg)", font="Arial", font_size=14),
-            y_label=Text("Chiều cao (cm)", font="Arial", font_size=14)
+            x_label=Text("Cân nặng (kg)", font="Times New Roman", font_size=14),
+            y_label=Text("Chiều cao (cm)", font="Times New Roman", font_size=14)
         )
 
         dots3 = VGroup(*[
@@ -1117,8 +1201,3 @@ class PCA(MovingCameraScene):
         self.wait(5)
 
         self.play(*[FadeOut(mob) for mob in self.mobjects])
-
-
-
-
-
