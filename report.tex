@@ -1,0 +1,256 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
+\usepackage[a4paper,left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{setspace}
+\usepackage{tocloft}
+\usepackage{amsmath, amssymb} 
+\usepackage[colorlinks=true, linkcolor=black, urlcolor=blue]{hyperref}
+\usepackage{enumitem}
+
+\onehalfspacing 
+
+\renewcommand{\thesection}{\Roman{section}} 
+\renewcommand{\thesubsection}{\arabic{subsection}} 
+\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
+
+\makeatletter
+\newcommand\subsubsubsection{\@startsection{paragraph}{4}{\z@}%
+    {-3.25ex \@plus -1ex \@minus -.2ex}%
+    {1.5ex \@plus .2ex}%
+    {\normalfont\normalsize\bfseries}}
+\makeatother
+\renewcommand{\theparagraph}{\thesubsubsection.\arabic{paragraph}}
+
+% Cấu hình để Mục lục hiện đến cấp độ 1.1.1
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+
+\renewcommand{\cftsecdotsep}{\cftdotsep} 
+\renewcommand{\refname}{} 
+
+\begin{document}
+
+\begin{titlepage}
+    \begin{tikzpicture}[remember picture, overlay]
+        \draw [line width=1pt] ([shift={(1.5cm,-1.5cm)}]current page.north west) rectangle ([shift={(-1.5cm,1.5cm)}]current page.south east);
+        \draw [line width=2pt] ([shift={(1.65cm,-1.65cm)}]current page.north west) rectangle ([shift={(-1.65cm,1.65cm)}]current page.south east);
+    \end{tikzpicture}
+    \begin{center}
+        \large \textbf{ĐẠI HỌC QUỐC GIA THÀNH PHỐ HỒ CHÍ MINH} \\
+        \large \textbf{TRƯỜNG ĐẠI HỌC KHOA HỌC TỰ NHIÊN} \\
+        \large \textbf{KHOA: CÔNG NGHỆ THÔNG TIN} \\
+        \vspace{1.5cm} 
+        \vspace{0.5cm}
+        \begin{center} \includegraphics[width=0.35\textwidth]{hcmus.png} \end{center}
+        \vspace{1.5cm}
+        \Large \textbf{BÁO CÁO ĐỒ ÁN THỰC HÀNH} \\
+        \Large \textbf{MÔN TOÁN ỨNG DỤNG VÀ THỐNG KÊ}
+        \vspace{2.5cm}
+        \large \underline{\textbf{NHÓM THỰC HIỆN:}} \\
+        \vspace{0.3cm}
+        \large \textbf{MSSV:} 20120087 – \textbf{Họ và tên:} Phạm Đình Tiểu Long \\
+        \large \textbf{MSSV:} 20120043 – \textbf{Họ và tên:} Nguyễn Công Dũng \\
+        \large \textbf{MSSV:} 20120094 – \textbf{Họ và tên:} Dương Hoài Đức \\
+        \large 
+        \textbf{MSSV:} 20120042 – \textbf{Họ và tên:} Trần Văn Đức \\
+        \vfill
+        \large \textbf{Giảng viên lý thuyết:} Dương Việt Hằng \\
+        \large \textbf{Lớp lý thuyết/Nhóm thực hành:} 24CTT3/24CTT3 \\
+        \large \textbf{Học kỳ - Niên khoá:} HK2 - 2025-2026
+        \vspace{1cm}
+    \end{center}
+\end{titlepage}
+
+% --- TRANG MỤC LỤC ---
+\newpage
+\begin{center}
+    \renewcommand{\contentsname}{\Huge \underline{MỤC LỤC}}
+    \tableofcontents
+\end{center}
+\newpage
+
+% --- NỘI DUNG ---
+\setcounter{page}{3}
+\section{THÔNG TIN THÀNH VIÊN}
+\section{NỘI DUNG}
+
+\subsection{Phần 1: Phép khử Gauss và Các Ứng Dụng}
+\subsubsection{Cơ Sở Lý Thuyết}
+
+% ĐÂY LÀ CẤP ĐỘ 1.1.1
+\subsubsubsection{Phương pháp khử Gauss và Gauss--Jordan}
+
+Xét hệ phương trình tuyến tính $Ax = b$ với $A \in \mathbb{R}^{m \times n}, x \in \mathbb{R}^n, b \in \mathbb{R}^m$.
+
+\textbf{Định nghĩa 1.1} (Ma trận tăng cường). \textit{Ma trận tăng cường (augmented matrix) của hệ $Ax = b$ là:}
+\begin{equation}
+[A \mid b] = 
+\left(
+\begin{array}{cccc|c}
+a_{11} & a_{12} & \cdots & a_{1n} & b_1 \\
+a_{21} & a_{22} & \cdots & a_{2n} & b_2 \\
+\vdots & \vdots & \ddots & \vdots & \vdots \\
+a_{m1} & a_{m2} & \cdots & a_{mn} & b_m
+\end{array}
+\right)
+\end{equation}
+
+\textbf{Định nghĩa 1.2} (Các phép biến đổi dòng sơ cấp). \textit{Ba phép biến đổi dòng sơ cấp trên ma trận:}
+\begin{enumerate}
+    \item $R_i \leftrightarrow R_j$: Hoán đổi dòng $i$ và dòng $j$.
+    \item $R_i \leftarrow c \cdot R_i$, với $c \neq 0$: Nhân dòng $i$ với hằng số $c$.
+    \item $R_i \leftarrow R_i + c \cdot R_j$: Cộng $c$ lần dòng $j$ vào dòng $i$.
+\end{enumerate}
+
+\textbf{Định nghĩa 1.3} (Dạng bậc thang dòng --- REF). Ma trận $U$ ở \textit{dạng bậc thang dòng} (REF) nếu:
+\begin{enumerate}
+    \item Mọi dòng toàn số 0 nằm phía dưới các dòng khác 0.
+    \item Phần tử chỉ huy (pivot) của mỗi dòng khác 0 nằm bên phải pivot của dòng ngay trên nó.
+\end{enumerate}
+
+\textbf{Định nghĩa 1.4} (Dạng bậc thang dòng rút gọn --- RREF). Ma trận $R$ ở \textit{dạng bậc thang dòng rút gọn} (RREF) nếu ngoài REF còn có:
+\begin{enumerate}
+    \setcounter{enumi}{2} 
+    \item Mỗi pivot bằng 1.
+    \item Mỗi cột chứa pivot có tất cả các phần tử còn lại bằng 0.
+\end{enumerate}
+
+\subsubsubsection{Khử Gauss có chọn phần tử chốt (Partial Pivoting)}
+
+Trong cài đặt thực tế, cần áp dụng \textit{khử Gauss có chọn phần tử chốt} hay \textit{partial pivoting} để đảm bảo tính ổn định số học.
+
+\textbf{Định lý 1.1} (Partial Pivoting). \textit{Tại bước khử thứ $k$, chọn hàng $p$ sao cho:}
+\begin{equation}
+\left| a_{pk}^{(k)} \right| = \max_{k \le i \le n} \left| a_{ik}^{(k)} \right|,
+\end{equation}
+\textit{rồi hoán đổi dòng $k$ và dòng $p$ trước khi thực hiện khử. Kỹ thuật này giảm thiểu đáng kể sai số làm tròn (round-off error) phát sinh trong tính toán dấu phẩy động.}
+
+\subsubsubsection{Tính Định Thức qua Khử Gauss}
+
+Sau khi đưa ma trận $\mathbf{A}$ về dạng tam giác trên $\mathbf{U}$ bằng phép khử Gauss với $s$ lần hoán đổi dòng, định thức được tính theo công thức:
+\begin{equation}
+\det(\mathbf{A}) = (-1)^s \cdot \prod_{i=1}^n u_{ii}.
+\end{equation}
+
+\subsubsubsection{Ma Trận Nghịch Đảo bằng Gauss--Jordan}
+
+\textbf{Định lý 1.2}. \textit{Ma trận $\mathbf{A} \in \mathbb{R}^{n \times n}$ khả nghịch khi và chỉ khi $\det(\mathbf{A}) \neq 0$. Nghịch đảo $\mathbf{A}^{-1}$ được tìm bằng cách thực hiện biến đổi dòng đồng thời trên ma trận ghép $[\mathbf{A} \mid \mathbf{I}_n]$ cho đến khi đạt dạng $[\mathbf{I}_n \mid \mathbf{A}^{-1}]$.}
+
+\subsubsubsection{Hạng Ma Trận và Cơ Sở}
+
+\textbf{Định nghĩa 1.5} (Hạng ma trận). \textit{Hạng} (rank) của ma trận $\mathbf{A}$, ký hiệu $\text{rank}(\mathbf{A})$, bằng số dòng khác 0 trong dạng REF của $\mathbf{A}$, hoặc tương đương, bằng số cột pivot.
+
+Từ dạng RREF, ta xác định được ba không gian con quan trọng:
+\begin{itemize}
+    \item \textbf{Không gian cột} (column space) $\mathcal{C}(\mathbf{A})$: sinh bởi các cột pivot của $\mathbf{A}$ gốc.
+    \item \textbf{Không gian dòng} (row space) $\mathcal{R}(\mathbf{A})$: sinh bởi các dòng khác 0 trong RREF.
+    \item \textbf{Không gian nghiệm} (null space) $\mathcal{N}(\mathbf{A})$: tập nghiệm của $\mathbf{Ax} = \mathbf{0}$.
+\end{itemize}
+
+\subsubsection{Thuật Toán}
+
+\textbf{Thuật toán 1.1} (Phép khử Gauss với Partial Pivoting). \textbf{Đầu vào:} Ma trận $\mathbf{A} \in \mathbb{R}^{n \times m}$, vector $\mathbf{b} \in \mathbb{R}^n$. \\
+\textbf{Đầu ra:} Nghiệm $\mathbf{x}$, số lần hoán đổi $s$, danh sách chỉ số pivot.
+
+\begin{enumerate}
+    \setcounter{enumi}{1} % Tiếp tục từ bước 2 của thuật toán
+    \item Với $k = 1, 2, \dots, n$:
+    \begin{enumerate}[label=\alph*.]
+        \item Tìm $p = \arg \max_{k \le i \le n} |M_{ik}|$. Nếu $|M_{pk}| = 0$: báo lỗi không tồn tại pivot tại cột $k$ (hệ không có nghiệm duy nhất); nếu $|M_{pk}| < \varepsilon$: cảnh báo pivot gần bằng 0, hệ có thể không ổn định số học (ill-conditioned).
+        \item Nếu $p \neq k$: hoán đổi dòng $k \leftrightarrow p$, tăng $s \leftarrow s + 1$.
+        \item Với $i = k + 1, \dots, n$: tính nhân tử $\ell_{ik} = M_{ik}/M_{kk}$, cập nhật $M_{i, \cdot} \leftarrow M_{i, \cdot} - \ell_{ik} \cdot M_{k, \cdot}$.
+    \end{enumerate}
+
+    \item \textbf{Thế ngược:} Giải hệ tam giác trên $\mathbf{Ux} = \mathbf{c}$ từ dưới lên:
+    \begin{equation}
+    x_i = \frac{1}{M_{ii}} \left( M_{i,m+1} - \sum_{j=i+1}^n M_{ij} x_j \right), \quad i = n, n-1, \dots, 1.
+    \end{equation}
+\end{enumerate}
+
+\subsubsection{Cài Đặt Python}
+
+\subsection{Phần 2: Phân Rã Ma Trận và Trực Quan Hóa với Manim}
+
+\subsubsection{Chéo Hóa Ma Trận (Diagonalizable Matrix)}
+
+\textbf{Định nghĩa 2.1} (Ma trận chéo hóa được). \textit{Ma trận $\mathbf{A} \in \mathbb{R}^{n \times n}$ chéo hóa được (diagonalizable) nếu tồn tại ma trận $\mathbf{P}$ khả nghịch và ma trận đường chéo $\mathbf{D}$ sao cho:}
+\begin{equation}
+\mathbf{A} = \mathbf{PDP}^{-1}, \quad \mathbf{D} = \text{diag}(\lambda_1, \lambda_2, \dots, \lambda_n),
+\end{equation}
+\textit{trong đó $\lambda_i$ là các giá trị riêng (eigenvalues) và các cột của $\mathbf{P}$ là các vector riêng tương ứng.}
+
+\textbf{Định lý 2.1} (Điều kiện chéo hóa). \textit{Ma trận $\mathbf{A} \in \mathbb{R}^{n \times n}$ chéo hóa được khi và chỉ khi $\mathbf{A}$ có $n$ vector riêng độc lập tuyến tính. Điều kiện đủ: $\mathbf{A}$ có $n$ giá trị riêng phân biệt.}
+
+Ứng dụng quan trọng của chéo hóa trong tính toán khoa học:
+\begin{equation}
+\mathbf{A}^k = \mathbf{PD}^k\mathbf{P}^{-1}, \quad \mathbf{D}^k = \text{diag}(\lambda_1^k, \lambda_2^k, \dots, \lambda_n^k).
+\end{equation}
+
+Điều này giúp giảm chi phí tính lũy thừa ma trận từ $O(n^3 \log k)$ xuống $O(n^2)$ sau khi đã có phân tích chéo hóa.
+
+\subsection{Phần 3: Giải Hệ Phương Trình và Phân Tích Hiệu Năng}
+
+\subsubsection{Lý Thuyết Sai Số và Tính Ổn Định Số}
+
+\subsubsubsection{Số Điều Kiện (Condition Number)}
+
+\textbf{Định nghĩa 3.1} (Số điều kiện). \textit{Số điều kiện của ma trận $\mathbf{A}$ đối với chuẩn $p$ là:}
+\begin{equation}
+\kappa_p(\mathbf{A}) = \|\mathbf{A}\|_p \cdot \|\mathbf{A}^{-1}\|_p.
+\end{equation}
+Đối với chuẩn spectral (chuẩn 2): $\kappa_2(\mathbf{A}) = \frac{\sigma_{\max}(\mathbf{A})}{\sigma_{\min}(\mathbf{A})}$.
+
+\textbf{Định lý 3.1} (Phân tích sai số nghiệm). \textit{Nếu $\mathbf{Ax} = \mathbf{b}$ là nghiệm đúng và $\mathbf{A\hat{x}} = \mathbf{b} + \delta \mathbf{b}$ là nghiệm tính với nhiễu dữ liệu, thì:}
+\begin{equation}
+\frac{\|\mathbf{\hat{x}} - \mathbf{x}\|}{\|\mathbf{x}\|} \le \kappa(\mathbf{A}) \cdot \frac{\|\delta \mathbf{b}\|}{\|\mathbf{b}\|}.
+\end{equation}
+Khi $\kappa(\mathbf{A})$ lớn, hệ bị điều kiện kém (ill-conditioned): sai số nhỏ trong dữ liệu đầu vào gây ra sai số lớn trong nghiệm.
+
+\subsubsubsection{So Sánh Các Phương Pháp}
+
+\begin{center}
+\begin{tabular}{lcccc}
+\hline
+\textbf{Phương pháp} & \textbf{Loại} & \textbf{Điều kiện áp dụng} & \textbf{Chi phí} & \textbf{Ổn định} \\ \hline
+Gauss (Partial Pivot) & Trực tiếp & Mọi $\mathbf{A}$ khả nghịch & $O(n^3)$ & Cao \\
+LU với pivot & Trực tiếp & Mọi $\mathbf{A}$ khả nghịch & $O(n^3)$ & Cao \\
+QR (Householder) & Trực tiếp & Mọi $\mathbf{A}$ (kể cả chữ nhật) & $O(n^3)$ & Rất cao \\
+Cholesky & Trực tiếp & $\mathbf{A}$ đối xứng xác định dương & $O(n^3/6)$ & Rất cao \\
+Gauss--Seidel & Lặp & Chéo trội hàng / SPD & $O(k\,n^2)$ & Trung bình \\ \hline
+\end{tabular}
+\end{center}
+
+\subsubsubsection{Phương Pháp Lặp Gauss--Seidel}
+
+Phân rã $\mathbf{A} = \mathbf{D} + \mathbf{L} + \mathbf{U}$ (đường chéo $\mathbf{D}$, tam giác dưới thuần $\mathbf{L}$, tam giác trên thuần $\mathbf{U}$). Ta có công thức lặp:
+\begin{equation}
+\mathbf{x}^{(k+1)} = -(\mathbf{D} + \mathbf{L})^{-1} \mathbf{U} \mathbf{x}^{(k)} + (\mathbf{D} + \mathbf{L})^{-1} \mathbf{b}.
+\end{equation}
+
+Nếu ta viết theo từng thành phần thì công thức lặp sẽ có dạng như sau:
+\begin{equation}
+x_i^{(k+1)} = \frac{1}{a_{ii}} \left( b_i - \sum_{j=1}^{i-1} a_{ij} x_j^{(k+1)} - \sum_{j=i+1}^n a_{ij} x_j^{(k)} \right), \quad i = 1, \dots, n.
+\end{equation}
+
+\textbf{Điều kiện hội tụ:} $\mathbf{A}$ chéo trội chặt hàng, tức $|a_{ii}| > \sum_{j \neq i} |a_{ij}|$ với mọi $i$
+\subsection{Kết luận}
+
+\
+% --- TÀI LIỆU THAM KHẢO ---
+\newpage
+\section{TÀI LIỆU THAM KHẢO}
+
+\begin{enumerate}[label={[\arabic*]}, leftmargin=1.5cm]
+    \item Gilbert Strang. \textit{Introduction to Linear Algebra}, 6th ed. Wellesley-Cambridge Press, 2023.
+    \item Lloyd N. Trefethen \& David Bau III. \textit{Numerical Linear Algebra}. SIAM, 1997.
+    \item Gene H. Golub \& Charles F. Van Loan. \textit{Matrix Computations}, 4th ed. Johns Hopkins University Press, 2013.
+    \item Cleve Moler. \textit{Numerical Computing with MATLAB}. SIAM, 2004. \\ \url{https://www.mathworks.com/moler/chapters.html}
+    \item Manim Community Developers. \textit{Manim Framework}, v0.18. 2024. \\ \url{https://docs.manim.community}
+    \item Jake VanderPlas. \textit{Python Data Science Handbook}. O’Reilly, 2016. \\ \url{https://jakevdp.github.io/PythonDataScienceHandbook/}
+    \item 3Blue1Brown. \textit{Essence of Linear Algebra}. YouTube, 2016. \\ \url{https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab}
+\end{enumerate}
+
+\end{document}
