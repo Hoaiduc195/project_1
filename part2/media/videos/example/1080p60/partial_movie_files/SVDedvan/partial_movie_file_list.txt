@@ -1,0 +1,12 @@
+# This file is used internally by FFMPEG.
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/1080p60/partial_movie_files/SVDedvan/2257293077_2517867050_223132457.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/1080p60/partial_movie_files/SVDedvan/2135761390_3272146723_275206680.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/1080p60/partial_movie_files/SVDedvan/2135761390_2819672903_3113159697.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/1080p60/partial_movie_files/SVDedvan/2135761390_4173056330_2740541563.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/1080p60/partial_movie_files/SVDedvan/2135761390_2834709167_2402672862.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/1080p60/partial_movie_files/SVDedvan/2135761390_1295422059_1457493171.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/1080p60/partial_movie_files/SVDedvan/2135761390_2834709167_1317913906.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/1080p60/partial_movie_files/SVDedvan/2135761390_1148354623_3733351307.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/1080p60/partial_movie_files/SVDedvan/2135761390_2834709167_1442640456.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/1080p60/partial_movie_files/SVDedvan/2135761390_2945352170_1007688311.mp4'
+file 'file:C:/Users/Windows/PycharmProjects/Manim/media/videos/example/1080p60/partial_movie_files/SVDedvan/2135761390_2834709167_3777079281.mp4'

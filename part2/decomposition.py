@@ -74,6 +74,19 @@ def gram_schmidt(A):
             q_j = vec_mul(v_j, 1.0 / R[j][j])
         else:
             q_j = [0.0] * m
+            for k in range(m):
+                temp_v = [0.0] * m
+                temp_v[k] = 1.0
+
+                for i in range(j):
+                    Q_i = get_col(Q, i)
+                    temp_v = vec_sub(temp_v, vec_mul(Q_i, dot(Q_i, temp_v)))
+                
+                if norm(temp_v) > 1e-12:
+                    q_j = vec_mul(temp_v, 1.0 / norm(temp_v))
+                    break
+            R[j][j] = 0.0
+            
         set_col(Q, j, q_j)
         set_col(v, j, v_j)
     return Q, R
