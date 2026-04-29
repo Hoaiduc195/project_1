@@ -46,122 +46,145 @@ class SVDOverview(Scene):
         self.wait(10)
 
 # Scene 2 - Problem Definition
-class SVDProblemDefinition(Scene):
+class SVDProblemDefinition(ThreeDScene):
     def construct(self):
-        
-        tex = Text("ĐẶT VẤN ĐỀ", font="Times New Roman", font_size=15)
-        tex.to_corner(UL, buff=0.25)
-        self.play(Write(tex))
-        self.wait(2)
-        
-        # ===== Title =====
-        title = Text("Có cách nào phân tách một ma trận biến đổi phức tạp?", font="Times New Roman", font_size=36)
-        self.play(Write(title))
-        self.play(title.animate.to_edge(UP))
+        # 0. Thiết lập Camera ban đầu
+        self.set_camera_orientation(phi=75 * DEGREES, theta=-30 * DEGREES)
 
-        # ===== Khởi tạo Ma trận A và tính toán SVD =====
+        # CÁC PHẦN TỬ CỐ ĐỊNH XUYÊN SUỐT (Góc trái / Trên cùng)
+        tex_label = Text("ĐẶT VẤN ĐỀ", font="Times New Roman", font_size=15, color=GREY).to_corner(UL, buff=0.25)
+        self.add_fixed_in_frame_mobjects(tex_label)
+        
+        title = Text("Có cách nào phân tách một ma trận biến đổi phức tạp?", font="Times New Roman", font_size=36).to_edge(UP)
+        self.add_fixed_in_frame_mobjects(title)
+        
+        self.play(Write(tex_label), Write(title))
+
+        # ===== Khởi tạo dữ liệu Toán học =====
         A_matrix = np.array([
-            [2.0, 1.0],
-            [0.0, 1.0]
+            [1.5, 0.5, 0.0],
+            [0.0, 1.0, 1.0],
+            [0.5, 0.0, 1.0]
         ])
-        
-        U_mat, S_mat, VT_mat = np.linalg.svd(A_matrix)
-        Sigma_mat = np.diag(S_mat)
+        U_mat, S_values, VT_mat = np.linalg.svd(A_matrix)
+        Sigma_mat = np.diag(S_values)
 
         # =================================================================
-        # PHẦN 1: MA TRẬN A VÀ MINH HOẠ BIẾN ĐỔI TRỰC TIẾP
+        # SCENE 1: CHỈ HIỆN CHỮ (Giới thiệu ma trận A)
         # =================================================================
-        A_tex = MathTex(r"A = \begin{bmatrix} 2 & 1 \\ 0 & 1 \end{bmatrix}")
-        A_tex.next_to(title, DOWN, buff=0.3)
+        A_tex = MathTex(r"A = \begin{bmatrix} 1.5 & 0.5 & 0 \\ 0 & 1 & 1 \\ 0.5 & 0 & 1 \end{bmatrix}")
+        self.add_fixed_in_frame_mobjects(A_tex)
         self.play(Write(A_tex))
-
-        # Mặt phẳng nền (đứng yên, mờ) để làm hệ quy chiếu
-        bg_plane = NumberPlane().set_opacity(0.3)
-        
-        # Mặt phẳng và hình tròn sẽ bị biến đổi
-        plane = NumberPlane()
-        circle = Circle(radius=1, color=BLUE).set_fill(BLUE, opacity=0.3)
-        
-        # Nhóm lại để biến đổi toàn bộ không gian
-        moving_space = VGroup(plane, circle)
-
-        self.play(Create(bg_plane), Create(moving_space))
-        self.wait(0.5)
-
-        label_direct = Text("Áp dụng A trực tiếp", font="Times New Roman", font_size=24).to_edge(DOWN)
-        self.play(Write(label_direct))
-
-        # Biến đổi TOÀN BỘ không gian trực tiếp bằng ma trận A
-        self.play(moving_space.animate.apply_matrix(A_matrix), run_time=1.5)
         self.wait(1.5)
+        
+        # Ẩn chữ đi để chuẩn bị nhường chỗ cho khối 3D
+        self.play(FadeOut(A_tex))
 
         # =================================================================
-        # PHẦN 2: GIỚI THIỆU SVD A = U \Sigma V^T = [] [] []
+        # SCENE 2: CHỈ HIỆN 3D (Minh hoạ biến đổi bởi A)
         # =================================================================
-        self.play(
-            FadeOut(bg_plane), 
-            FadeOut(moving_space), 
-            FadeOut(label_direct)
-        )
+        axes = ThreeDAxes()
+        sphere = Sphere(radius=1.5, resolution=(20, 20))
+        sphere.set_style(fill_opacity=0.2, fill_color=BLUE, stroke_width=0.5, stroke_color=BLUE_A)
+        cube_wireframe = Cube(side_length=3, fill_opacity=0, stroke_width=1, stroke_color=GREY)
+        
+        moving_space = VGroup(sphere, cube_wireframe)
 
-        svd_formula = MathTex(r"A = U \Sigma V^T")
-        svd_formula.move_to(A_tex)
+        # Nhãn nhỏ ở dưới cùng, không che mất hình
+        label_direct = Text("Áp dụng trực tiếp ma trận A", font="Times New Roman", font_size=24).to_edge(DOWN)
+        self.add_fixed_in_frame_mobjects(label_direct)
 
-        self.play(Transform(A_tex, svd_formula))
+        self.play(Create(axes), Create(moving_space), FadeIn(label_direct))
         self.wait(0.5)
 
+        # Hoạt ảnh biến đổi 3D
+        self.play(ApplyMatrix(A_matrix, moving_space), run_time=2.5)
+        self.begin_ambient_camera_rotation(rate=0.2)
+        self.wait(2)
+        self.stop_ambient_camera_rotation()
+
+        # Dọn dẹp không gian 3D để quay lại phần lý thuyết
+        self.play(FadeOut(axes), FadeOut(moving_space), FadeOut(label_direct))
+        self.set_camera_orientation(phi=75 * DEGREES, theta=-30 * DEGREES) # Reset góc camera
+
+        # =================================================================
+        # SCENE 3: CHỈ HIỆN CHỮ (Công thức SVD thu nhỏ)
+        # =================================================================
+        svd_formula = MathTex(r"A = U \Sigma V^T")
+        self.add_fixed_in_frame_mobjects(svd_formula)
+        self.play(Write(svd_formula))
+
+        # Hàm chuyển ma trận sang Tex
         def mat_to_tex(mat):
             rows = []
             for row in mat:
                 rows.append(" & ".join([f"{val:.2f}" for val in row]))
             return r"\begin{bmatrix} " + r" \\ ".join(rows) + r" \end{bmatrix}"
 
-        U_tex = mat_to_tex(U_mat)
-        S_tex = mat_to_tex(Sigma_mat)
-        VT_tex = mat_to_tex(VT_mat)
+        U_tex_part = mat_to_tex(U_mat)
+        S_tex_part = mat_to_tex(Sigma_mat)
+        VT_tex_part = mat_to_tex(VT_mat)
 
+        # THU NHỎ MA TRẬN BẰNG .scale(0.55) ĐỂ KHÔNG BỊ TRÀN
         svd_matrices = MathTex(
-            r"=", U_tex, S_tex, VT_tex
-        ).next_to(A_tex, DOWN, buff=0.5)
+            r"=", U_tex_part, S_tex_part, VT_tex_part
+        ).scale(0.55).next_to(svd_formula, DOWN, buff=0.5)
+        
+        labels_svd = VGroup(
+            Text("(Xoay)", font_size=16, color=YELLOW),
+            Text("(Co giãn)", font_size=16, color=YELLOW),
+            Text("(Xoay)", font_size=16, color=YELLOW)
+        ).arrange(RIGHT, buff=2).next_to(svd_matrices, DOWN, buff=0.2)
 
-        self.play(Write(svd_matrices))
-        self.wait(2)
+        self.add_fixed_in_frame_mobjects(svd_matrices, labels_svd)
+        self.play(Write(svd_matrices), Write(labels_svd))
+        self.wait(3)
+
+        # Ẩn toàn bộ công thức SVD đi để lấy lại không gian
+        self.play(FadeOut(svd_formula), FadeOut(svd_matrices), FadeOut(labels_svd))
 
         # =================================================================
-        # PHẦN 3: TÁCH THÀNH 3 BƯỚC BIẾN ĐỔI TRÊN MẶT PHẲNG
+        # SCENE 4: CHỈ HIỆN 3D (Từng bước SVD)
         # =================================================================
-        self.play(FadeOut(svd_matrices))
+        # Reset lại không gian 3D ban đầu
+        axes_2 = ThreeDAxes()
+        sphere_2 = Sphere(radius=1.5, resolution=(20, 20))
+        sphere_2.set_style(fill_opacity=0.2, fill_color=BLUE, stroke_width=0.5, stroke_color=BLUE_A)
+        cube_wireframe_2 = Cube(side_length=3, fill_opacity=0, stroke_width=1, stroke_color=GREY)
+        moving_space_2 = VGroup(sphere_2, cube_wireframe_2)
 
-        # Khởi tạo lại không gian gốc cho các bước biến đổi SVD
-        bg_plane_2 = NumberPlane().set_opacity(0.3)
-        plane_2 = NumberPlane()
-        circle_2 = Circle(radius=1, color=BLUE).set_fill(BLUE, opacity=0.3)
-        moving_space_2 = VGroup(plane_2, circle_2)
+        step_label = Text("1. Xoay hệ trục đầu vào ($V^T$)", font="Times New Roman", font_size=24, t2c={'$V^T$': YELLOW}).to_edge(DOWN)
+        self.add_fixed_in_frame_mobjects(step_label)
 
-        self.play(Create(bg_plane_2), Create(moving_space_2))
-
-        # Bước 1: Nhân V^T (Xoay không gian)
-        step1 = Text("1. Xoay hệ trục đầu vào (V^T)", font="Times New Roman", font_size=24).to_edge(DOWN)
-        self.play(Write(step1))
-        self.play(moving_space_2.animate.apply_matrix(VT_mat), run_time=1.5)
+        self.play(Create(axes_2), Create(moving_space_2), FadeIn(step_label))
         self.wait(0.5)
 
-        # Bước 2: Nhân Sigma (Co giãn không gian theo trục)
-        step2 = Text("2. Co giãn (Σ)", font="Times New Roman", font_size=24).to_edge(DOWN)
-        self.play(Transform(step1, step2))
-        self.play(moving_space_2.animate.apply_matrix(Sigma_mat), run_time=1.5)
-        self.wait(0.5)
+        # BƯỚC 1: Xoay (V^T)
+        self.play(ApplyMatrix(VT_mat, moving_space_2), run_time=2)
+        self.wait(1)
 
-        # Bước 3: Nhân U (Xoay không gian lần cuối)
-        step3 = Text("3. Xoay kết quả đầu ra (U)", font="Times New Roman", font_size=24).to_edge(DOWN)
-        self.play(Transform(step1, step3))
-        self.play(moving_space_2.animate.apply_matrix(U_mat), run_time=1.5)
+        # BƯỚC 2: Co giãn (Sigma)
+        step2_text = Text("2. Co giãn theo trục ($\Sigma$)", font="Times New Roman", font_size=24, t2c={'$\Sigma$': YELLOW}).to_edge(DOWN)
+        self.play(Transform(step_label, step2_text))
+        self.play(ApplyMatrix(Sigma_mat, moving_space_2), run_time=2)
+        
+        self.begin_ambient_camera_rotation(rate=0.1)
+        self.wait(1.5)
+        self.stop_ambient_camera_rotation()
+
+        # BƯỚC 3: Xoay (U)
+        step3_text = Text("3. Xoay kết quả đầu ra ($U$)", font="Times New Roman", font_size=24, t2c={'$U$': YELLOW}).to_edge(DOWN)
+        self.play(Transform(step_label, step3_text))
+        self.play(ApplyMatrix(U_mat, moving_space_2), run_time=2)
         self.wait(1)
 
         # Kết luận
         final_text = Text("SVD = Xoay → Co giãn → Xoay", font="Times New Roman", font_size=28, color=YELLOW).to_edge(DOWN)
-        self.play(Transform(step1, final_text))
-        self.wait(2)
+        self.play(Transform(step_label, final_text))
+        
+        self.begin_ambient_camera_rotation(rate=0.15)
+        self.wait(4)
+        self.stop_ambient_camera_rotation()        
         
 # Scene 3 - SVD Advantage
 class SVDAdvan(Scene):
@@ -239,7 +262,7 @@ class SVDConceptFlow(Scene):
         # =========================================================
         title = Text("CÁC KIẾN THỨC CẦN THIẾT", font="Times New Roman", font_size=15, color=GREY)
         self.play(Write(title))
-        self.play(title.animate.to_edge(UP, buff=0.5))
+        self.play(title.animate.to_corner(UL, buff=0.5))
 
         plane = NumberPlane()
         self.play(Create(plane), run_time=1.5)
@@ -382,7 +405,7 @@ class SVDConceptFlow(Scene):
 class Diagonalization(Scene):
     def construct(self):
         # Đặt text ở góc trên bên trái (UL)
-        title = Text("Chéo hoá ma trận", font_size=15, color=GREY).to_corner(UL, buff=0.25)
+        title = Text("CHÉO HOÁ MA TRẬN", font_size=15, color=GREY).to_corner(UL, buff=0.25)
         self.play(Write(title))
 
         # --- PHẦN MỞ ĐẦU: Giới thiệu ma trận A ---
@@ -706,7 +729,7 @@ class ComputeSVD(Scene):
 class SVDExample(Scene):
     def construct(self):
         # ===== TIÊU ĐỀ =====
-        title = Text("Thực hành phân rã SVD", font_size=15, color=GREY).to_corner(UL, buff=0.25)
+        title = Text("THỰC HÀNH PHÂN RÃ SVD", font_size=15, color=GREY).to_corner(UL, buff=0.25)
         self.play(Write(title))
 
         # Giới thiệu ma trận A
@@ -898,48 +921,57 @@ class SVDExample(Scene):
         self.wait(3)
         
 # Scene 8 - Visualization
-class SVDVisualization(ThreeDScene):
+class SVDVisualization(Scene):
     def construct(self):
-        # Camera
-        self.set_camera_orientation(phi=60 * DEGREES, theta=45 * DEGREES)
-
         # ===== TITLE =====
-        title = Text("TRỰC QUAN HÓA SVD", font_size=15, color=GREY)
+        title = Text("TRỰC QUAN HÓA SVD", font_size=24, color=GREY)
         title.to_corner(UL)
-        self.add_fixed_in_frame_mobjects(title)
+        self.add(title)
 
-        # Axes
-        axes = ThreeDAxes()
-        self.play(Create(axes), run_time=1)
+        # ===== TRỤC TỌA ĐỘ =====
+        # Sử dụng NumberPlane cho 2D thay vì ThreeDAxes
+        plane = NumberPlane()
+        self.play(Create(plane), run_time=1)
 
-        # ===== SPHERE (THAY CHO DOTS) =====
-        sphere = Sphere(radius=2, resolution=(20, 20))
-        sphere.set_fill(opacity=0.5)
-        sphere.set_stroke(width=0.5)
+        # ===== CIRCLE VÀ VECTORS =====
+        # Thêm 2 vector vào trong hình tròn để thấy rõ sự xoay
+        circle = Circle(radius=1.5)
+        circle.set_fill(color=BLUE, opacity=0.5)
+        circle.set_stroke(color=WHITE, width=2)
+        
+        vec_x = Vector(RIGHT * 1.5, color=RED)
+        vec_y = Vector(UP * 1.5, color=GREEN)
+        
+        # Gộp tất cả lại thành một nhóm để áp dụng ma trận
+        shape = VGroup(circle, vec_x, vec_y)
 
-        # Gradient màu (giữ cảm giác trực quan)
-        sphere.set_color_by_gradient(BLUE, GREEN, RED)
-
-        self.play(FadeIn(sphere), run_time=1)
+        self.play(FadeIn(shape), run_time=1)
         self.wait(0.5)
 
         # ===== MATRICES =====
+        # Để an toàn cho Manim, ta vẫn khai báo ma trận 3x3 nhưng giữ trục Z cố định (z=1 và không có phép biến đổi nào trên Z).
+        
+        # V^T: Ma trận xoay 45 độ
+        angle_v = 45 * DEGREES
         VT = np.array([
-            [5/np.sqrt(30), -2/np.sqrt(30), 1/np.sqrt(30)],
-            [0,             1/np.sqrt(5),   2/np.sqrt(5)],
-            [-1/np.sqrt(6), -2/np.sqrt(6),  1/np.sqrt(6)]
+            [np.cos(angle_v), -np.sin(angle_v), 0],
+            [np.sin(angle_v),  np.cos(angle_v), 0],
+            [0,                0,               1]
         ])
 
+        # Sigma: Ma trận co giãn (Kéo giãn trục X gấp đôi, trục Y giữ nguyên)
         Sigma = np.array([
-            [np.sqrt(6), 0, 0],
-            [0,          1, 0],
-            [0,          0, 0]
+            [2, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1]
         ])
 
+        # U: Ma trận xoay 30 độ
+        angle_u = 30 * DEGREES
         U = np.array([
-            [1/np.sqrt(5),  2/np.sqrt(5), 0],
-            [-2/np.sqrt(5), 1/np.sqrt(5), 0],
-            [0,             0,            1]
+            [np.cos(angle_u), -np.sin(angle_u), 0],
+            [np.sin(angle_u),  np.cos(angle_u), 0],
+            [0,                0,               1]
         ])
 
         # ===== LABEL FUNCTION =====
@@ -950,37 +982,34 @@ class SVDVisualization(ThreeDScene):
                 Text(text2, font_size=26, color=YELLOW)
             ).arrange(RIGHT, buff=0.2).to_edge(UP)
 
-            self.add_fixed_in_frame_mobjects(label)
             self.play(FadeIn(label), run_time=0.5)
             return label
 
-    # ===== BƯỚC 1: Xoay bởi V^T =====
-        l_vt = show_label("1. Áp dụng", r"V^T", "(Xoay)")
-        self.play(ApplyMatrix(VT, sphere), run_time=1.5)
+        # ===== BƯỚC 1: Xoay bởi V^T =====
+        l_vt = show_label("1. Áp dụng", r"V^T", "(Xoay 45 độ)")
+        self.play(ApplyMatrix(VT, shape), run_time=1.5)
         self.wait(0.5)
         self.play(FadeOut(l_vt, shift=RIGHT))
 
         # ===== BƯỚC 2: Co giãn bởi Sigma =====
-        l_sigma = show_label("2. Áp dụng", r"\Sigma", "(Co giãn)")
-        self.play(ApplyMatrix(Sigma, sphere), run_time=1.5)
+        l_sigma = show_label("2. Áp dụng", r"\Sigma", "(Kéo giãn theo trục X)")
+        self.play(ApplyMatrix(Sigma, shape), run_time=1.5)
         self.wait(0.5)
         self.play(FadeOut(l_sigma, shift=RIGHT))
 
         # ===== BƯỚC 3: Xoay bởi U =====
-        l_u = show_label("3. Áp dụng", r"U", "(Xoay)")
-        self.play(ApplyMatrix(U, sphere), run_time=1.5)
-        self.wait(0.5)
+        l_u = show_label("3. Áp dụng", r"U", "(Xoay 30 độ)")
+        self.play(ApplyMatrix(U, shape), run_time=1.5)
+        self.wait(1)
         self.play(FadeOut(l_u, shift=RIGHT))
 
-        # ===== CHỈ XOAY CAMERA Ở CUỐI =====
-        self.begin_ambient_camera_rotation(rate=0.1)
-        self.wait(6)
-        self.stop_ambient_camera_rotation()
-
+        # Giữ nguyên màn hình ở cuối
+        self.wait(3)
+        
 # Scene 9 - SVD application 1
 class SVDReconstruction(Scene):
     def construct(self):
-        tex = Text("CÁC ỨNG DỤNG CỦA SVD",font="Times New Roman", font_size=15, color=GREY)
+        tex = Text("CÁC ỨNG DỤNG CỦA SVD", font="Times New Roman", font_size=15, color=GREY)
         tex.to_corner(UL, buff=0.25)
         title = Text("Áp dụng trong ước lượng hình ảnh", font="Times New Roman", font_size=20)
         title.to_edge(UP, buff=1.0)
