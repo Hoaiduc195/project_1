@@ -190,7 +190,7 @@ class SVDProblemDefinition(ThreeDScene):
 class SVDAdvan(Scene):
     def construct(self):
         # corner
-        tex = Text("ĐIỂM MẠNH CỦA SVD", font="Times New Roman", font_size=15)
+        tex = Text("ĐIỂM MẠNH CỦA SVD", font="Times New Roman", font_size=15, color=GREY)
         tex.to_corner(UL, buff=0.25)
         self.play(Write(tex))
         self.wait(2)
@@ -255,7 +255,7 @@ class SVDAdvan(Scene):
 class SVDConceptFlow(Scene):
     def construct(self):
         def get_label(text_str):
-            return Text(text_str, font="Times New Roman", font_size=24).to_edge(DOWN, buff=0.5)
+            return Text(text_str, font="Times New Roman", font_size=15).to_edge(DOWN, buff=0.5)
 
         # =========================================================
         # 0. MỞ ĐẦU (Đọc kịch bản: ~7 giây)
@@ -597,16 +597,22 @@ class ComputeSVD(Scene):
         self.play(FadeOut(VGroup(label_U, label_S, label_V, arrow_U, arrow_S, arrow_V)))
 
         # ===== 2. Minh họa ma trận Sigma và A =====
-        # Sử dụng dạng MobjectTable cho gọn và chuẩn thay vì tạo vòng lặp Dot thủ công
-        grid_S = MobjectTable(
-            [[Dot(radius=0.05, color=YELLOW) for _ in range(3)] for _ in range(2)],
-            include_outer_lines=True
-        ).scale(0.5)
+        # SỬA ĐỔI: Khởi tạo mảng 2D chứa các giá trị cụ thể cho ma trận Sigma 2x3
+        sigma_elements = [
+            [MathTex(r"\sigma_1", color=YELLOW), MathTex("0", color=YELLOW), MathTex("0", color=YELLOW)],
+            [MathTex("0", color=YELLOW), MathTex(r"\sigma_2", color=YELLOW), MathTex("0", color=YELLOW)]
+        ]
         
+        grid_S = MobjectTable(
+            sigma_elements,
+            include_outer_lines=True
+        ).scale(0.6) # Tăng scale lên 0.6 để các text hiển thị rõ hơn một chút
+        
+        # Ma trận A vẫn dùng Dot để tượng trưng cho các giá trị hỗn hợp
         grid_A = MobjectTable(
             [[Dot(radius=0.05, color=WHITE) for _ in range(3)] for _ in range(2)],
             include_outer_lines=True
-        ).scale(0.5)
+        ).scale(0.6)
 
         # Định dạng bracket
         matrix_Sigma = VGroup(MathTex(r"\left[", font_size=80), grid_S, MathTex(r"\right]", font_size=80)).arrange(RIGHT, buff=0.1)
@@ -618,7 +624,7 @@ class ComputeSVD(Scene):
         size_text_A = Text("2 x 3", font="Times New Roman", font_size=20).next_to(matrix_A, DOWN)
         size_text_S = Text("2 x 3", font="Times New Roman", font_size=20).next_to(matrix_Sigma, DOWN)
         
-        # SỬA LỖI Ở ĐÂY: Dời eq_condition xuống phía dưới cụm ma trận và căn giữa
+        # eq_condition được dời xuống phía dưới cụm ma trận và căn giữa
         eq_condition = MathTex(r"\sigma_1 \ge \sigma_2 \ge \cdots \ge \sigma_k \ge 0", font_size=36)
         eq_condition.next_to(matrices_group, DOWN, buff=1.2).set_x(0)
         self.wait(2)
@@ -724,6 +730,7 @@ class ComputeSVD(Scene):
 
         self.play(FadeOut(VGroup(u_step4, title_U, tex)))
         self.wait(1)
+        
         
 # Scene 7 - SVD Demonstration
 class SVDExample(Scene):
@@ -924,7 +931,7 @@ class SVDExample(Scene):
 class SVDVisualization(Scene):
     def construct(self):
         # ===== TITLE =====
-        title = Text("TRỰC QUAN HÓA SVD", font_size=24, color=GREY)
+        title = Text("TRỰC QUAN HÓA SVD", font_size=15, color=GREY)
         title.to_corner(UL)
         self.add(title)
 
