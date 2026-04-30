@@ -100,6 +100,6 @@ Các chức năng chính:
 ## 🌟 Đóng góp & Liên hệ
 
 - Đóng góp ý kiến, báo lỗi hoặc đề xuất tại [GitHub Issues](https://github.com/Hoaiduc195/project_1/issues)
-- Liên hệ: [24120040@student.hcmus.edu.vn]
+- Liên hệ tới [tôi](24120040@student.hcmus.edu.vn)
 
 ---
