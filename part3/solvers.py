@@ -68,103 +68,99 @@ def solve_gauss_seidel(A, b, x0=None, tol=1e-10, max_iters=1000, omega=0.7):
 
 # 2. SVD decomposition solver
 def solve_svd(A, b):
-	# 1. Normalize b to a column vector.
-    if b is None: return None
-    b_mat = [[float(val)] for val in (b if isinstance(b[0], (list, tuple)) else b)]
-    m, n = len(A), len(A[0])
+	if b is None: return None
+	
+	b_flat = [float(row[0]) if isinstance(row, (list, tuple)) else float(row) for row in b]
+	m, n = len(A), len(A[0])
 
-	# 2. Compute SVD.
-    U, S, Vt = dc.do_svd_primitive(A)
-    V = dc.transpose(Vt)
-    
-	# 3. Estimate numerical rank and filter tiny singular values.
-    singular_values = dc.get_diag(S)
-    max_s = max(singular_values) if singular_values else 0
-    tol = max_s * n * 1e-12 
-    
-    actual_rank = 0
-    for s in singular_values:
-        if s > tol: actual_rank += 1
-    actual_rank = min(actual_rank, m)
+	U, S_mat, Vt = dc.do_svd_optimized(A)
+	
+	raw_diag = dc.get_diag(S_mat)
+	singular_values = [row[0] if isinstance(row, list) else row for row in raw_diag]
+	
+	max_s = 0.0
+	if singular_values:
+		for s in singular_values:
+			if s > max_s: max_s = s
+			
+	tol = max_s * n * 1e-12 
+	
+	actual_rank = 0
+	for s in singular_values:
+		if s > tol: actual_rank += 1
+	actual_rank = min(actual_rank, m)
 
-	# 4. Compute xp (minimum-norm particular solution).
-    Ut = dc.transpose(U)
-    Utb = dc.mat_mul(Ut, b_mat)
-    y = dc.zeros(n, 1)
-    for i in range(actual_rank):
-        y[i][0] = Utb[i][0] / singular_values[i]
-    
-    xp = [row[0] for row in dc.mat_mul(V, y)]
+	Utb = []
+	for i in range(actual_rank):
+		dot = 0.0
+		for j in range(m):
+			dot += U[j][i] * b_flat[j]
+		Utb.append(dot)
 
-	# 5. Build null-space basis and reduce it to RREF for cleaner parameters.
-    null_basis = []
-    for j in range(actual_rank, n):
-        null_basis.append(dc.get_col(V, j))
-    
-    null_space_cleaned = rref(null_basis) if null_basis else []
+	xp = [0.0] * n
+	for i in range(actual_rank):
+		factor = Utb[i] / singular_values[i]
+		for j in range(n):
+			xp[j] += Vt[i][j] * factor
 
-    xp = [round(v, 10) for v in xp]
-    for i in range(len(null_space_cleaned)):
-        null_space_cleaned[i] = [round(v, 10) for v in null_space_cleaned[i]]
+	null_basis = []
+	for i in range(actual_rank, n):
+		null_basis.append(Vt[i][:])
 
-	# 6. Transform xp into a basic-form particular solution
-	# by zeroing entries at null-space pivot positions.
-    for basis_vec in null_space_cleaned:
-		# Find pivot position (first value close to 1.0) in each basis vector.
-        pivot_idx = -1
-        for k in range(n):
-            if abs(basis_vec[k] - 1.0) < 1e-9:
-                pivot_idx = k
-                break
-        
-        if pivot_idx != -1:
-			# Eliminate xp at this pivot position.
-            factor = xp[pivot_idx]
-            for k in range(n):
-                xp[k] = xp[k] - factor * basis_vec[k]
+	null_space_cleaned = null_basis if null_basis else []
 
-	# 7. Build final symbolic expressions.
-    results = []
-    for i in range(n):
-		# Final rounding to clean residual floating-point noise.
-        val_fixed = round(xp[i], 10)
-        expr = back_substitution.Expression([val_fixed], [])
-        
-        for idx, basis_vec in enumerate(null_space_cleaned):
-            coeff = round(basis_vec[i], 10)
-            if abs(coeff) > 1e-9:
-                expr = expr + back_substitution.Expression([coeff], [f"t{idx+1}"])
-        results.append(expr)
-        
-    return results
+	for basis_vec in null_space_cleaned:
+		pivot_idx = -1
+		for k in range(n):
+			if abs(basis_vec[k] - 1.0) < 1e-9:
+				pivot_idx = k
+				break
+		
+		if pivot_idx != -1:
+			factor = xp[pivot_idx]
+			for k in range(n):
+				xp[k] -= factor * basis_vec[k]
+
+	results = []
+	for i in range(n):
+		val_fixed = round(xp[i], 10)
+		expr = back_substitution.Expression([val_fixed], [])
+		
+		for idx, basis_vec in enumerate(null_space_cleaned):
+			coeff = round(basis_vec[i], 10)
+			if abs(coeff) > 1e-9:
+				expr = expr + back_substitution.Expression([coeff], [f"t{idx+1}"])
+		results.append(expr)
+		
+	return results
 
 def rref(B):
-    if not B: return B
-    res = [list(row) for row in B]
-    rows, cols = len(res), len(res[0])
-    pivot_row = 0
-    for j in range(cols):
-        if pivot_row >= rows: break
-        max_idx = pivot_row
-        for i in range(pivot_row + 1, rows):
-            if abs(res[i][j]) > abs(res[max_idx][j]): max_idx = i
-        if abs(res[max_idx][j]) < 1e-10: continue
-        res[pivot_row], res[max_idx] = res[max_idx], res[pivot_row]
-        lv = res[pivot_row][j]
-        res[pivot_row] = [val / lv for val in res[pivot_row]]
-        for i in range(rows):
-            if i != pivot_row:
-                factor = res[i][j]
-                for k in range(j, cols): res[i][k] -= factor * res[pivot_row][k]
-        pivot_row += 1
-    return res
+	if not B: return B
+	res = [list(row) for row in B]
+	rows, cols = len(res), len(res[0])
+	pivot_row = 0
+	for j in range(cols):
+		if pivot_row >= rows: break
+		max_idx = pivot_row
+		for i in range(pivot_row + 1, rows):
+			if abs(res[i][j]) > abs(res[max_idx][j]): max_idx = i
+		if abs(res[max_idx][j]) < 1e-10: continue
+		res[pivot_row], res[max_idx] = res[max_idx], res[pivot_row]
+		lv = res[pivot_row][j]
+		res[pivot_row] = [val / lv for val in res[pivot_row]]
+		for i in range(rows):
+			if i != pivot_row:
+				factor = res[i][j]
+				for k in range(j, cols): res[i][k] -= factor * res[pivot_row][k]
+		pivot_row += 1
+	return res
 
 if __name__ == "__main__":
 	import numpy as np
 	A = np.random.rand(3, 3).tolist()
 	b = np.random.rand(3).tolist()
-	A = [[1, 1],[2,2]]
-	b = [3, 6]
+	A = [[1, 1, 2],[2, -1, 4],[5, 2, 9]]
+	b = [1, 1, 4]
 	print("Solving Ax = b using Gaussian elimination:")
 	x = solve_gaussian(A, b)
 	# print solution vector

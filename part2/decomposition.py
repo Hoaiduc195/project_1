@@ -140,7 +140,82 @@ def do_svd_primitive(A, num_iters=200):
             set_col(U, i, u_i)
             
     return U, S, Vt
+def matmul_square(A, B):
+    n = len(A)
+    C = [[0.0]*n for _ in range(n)]
+    for i in range(n):
+        Ai = A[i]
+        Ci = C[i]
+        for k in range(n):
+            aik = Ai[k]
+            Bk = B[k]
+            for j in range(n):
+                Ci[j] += aik * Bk[j]
+    return C
+def is_converged(A_k, tol=1e-8):
+    off_diag = 0.0
+    n = len(A_k)
+    for i in range(n):
+        for j in range(n):
+            if i != j:
+                off_diag += abs(A_k[i][j])
+    return off_diag < tol
+def build_sigma_matrix(singular_values):
+    n = len(singular_values)
+    S = [[0.0]*n for _ in range(n)]
+    
+    for i in range(n):
+        S[i][i] = singular_values[i]
+        
+    return S
+def do_svd_optimized(A, num_iters=100, tol=1e-9):
+    m, n = len(A), len(A[0])
+    
+    # AtA
+    AtA = [[0.0]*n for _ in range(n)]
+    for i in range(n):
+        for j in range(n):
+            s = 0.0
+            for k in range(m):
+                s += A[k][i] * A[k][j]
+            AtA[i][j] = s
 
+    A_k = [row[:] for row in AtA]
+    V_k = eye(n)
+
+    for _ in range(num_iters):
+        Q, R = gram_schmidt(A_k)
+        A_k = matmul_square(R, Q)
+        V_k = matmul_square(V_k, Q)
+
+        # early stop
+        if is_converged(A_k):
+            break
+
+    eigenvalues = [max(A_k[i][i], 0.0) for i in range(n)]
+    singular_values = [math.sqrt(e) for e in eigenvalues]
+
+    idx = sorted(range(n), key=lambda i: singular_values[i], reverse=True)
+
+    # build V
+    V_sorted = [[V_k[row][i] for i in idx] for row in range(n)]
+    Vt = transpose(V_sorted)
+
+    # build U
+    U = [[0.0]*n for _ in range(m)]
+    for i in range(n):
+        sigma = singular_values[idx[i]]
+        if sigma > 1e-10:
+            v_i = [V_sorted[row][i] for row in range(n)]
+            for row in range(m):
+                s = 0.0
+                Arow = A[row]
+                for k in range(n):
+                    s += Arow[k] * v_i[k]
+                U[row][i] = s / sigma
+
+    S = build_sigma_matrix(singular_values)
+    return U, S, Vt
 
 def do_svd_numpy(A):
     """
