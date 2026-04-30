@@ -1,9 +1,11 @@
 # Ứng dụng Giải Tích Ma Trận & Biểu Diễn Hình Ảnh
 
 ## 👤 Người thực hiện
-- Họ tên: [Điền tên bạn tại đây]
-- MSSV: [Điền MSSV]
-- Email: [Điền email]
+- 24120087 - Phạm Đình Tiểu Long
+- 24120043 - Nguyễn Công Dũng
+- 24120040 - Dương Hoài Đức
+- 24120042 - Trần Văn Đức
+- 22120250 - Âu Lê Tuấn Nhật
 
 ---
 
