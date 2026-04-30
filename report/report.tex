@@ -91,7 +91,6 @@
 \end{center}
 \newpage
 
-% --- NỘI DUNG ---
 \setcounter{page}{3}
 \section{THÔNG TIN THÀNH VIÊN}
 
@@ -936,7 +935,32 @@ SVD & $1.125$ & $1.17 \times 10^{-3}$ \\ \hline
 \end{center}
 
 \textit{Kết luận:} Kết quả thực nghiệm xác nhận rằng phương pháp Khử Gauss với kỹ thuật chọn phần tử chốt (Partial Pivoting) đạt được sự cân bằng tối ưu giữa tốc độ thực thi và độ ổn định số học. Trong khi đó, biểu đồ Log-Log (Hình ...) cho thấy độ dốc của các đường thực nghiệm bám sát đường lý thuyết $O(n^3)$, chứng minh tính đúng đắn trong việc cài đặt thuật toán.
-    
+
+\subsection{KẾT LUẬN}
+
+\subsubsection{Tóm tắt kết quả đạt được}
+\begin{itemize}
+    \item \textbf{Xây dựng thành công bộ công cụ giải toán:} Đã cài đặt hoàn chỉnh các thuật toán nền tảng bao gồm khử Gauss (Partial Pivoting), phân rã SVD và phương pháp lặp Gauss--Seidel bằng ngôn ngữ Python thuần.
+    \item \textbf{Tối ưu hóa độ chính xác:} Thuật toán khử Gauss đạt độ chính xác cực cao với sai số tiệm cận mức $10^{-16}$ trên các ma trận SPD.
+    \item \textbf{Phân tích hiệu năng chi tiết:} Thông qua thực nghiệm Benchmarking và biểu đồ Log--Log, đã chứng minh được sự tương quan chặt chẽ giữa thời gian thực thi thực tế và độ phức tạp lý thuyết $O(n^3)$.
+    \item \textbf{Trực quan hóa báo cáo:} Hoàn thiện việc chuyển đổi dữ liệu phân tích từ môi trường lập trình (Jupyter Notebook) sang định dạng \LaTeX{} chuyên nghiệp, bao gồm các bảng biểu và công thức toán học chuẩn xác.
+\end{itemize}
+
+\subsubsection{Khó khăn gặp phải}
+\begin{itemize}
+    \item \textbf{Độ ổn định số học:} Khi xử lý các ma trận có điều kiện kém (ill-conditioned) như ma trận Hilbert, sai số làm tròn máy tính bị khuếch đại mạnh, gây khó khăn cho việc tìm nghiệm chính xác bằng phương pháp SVD tự cài đặt .
+    \item \textbf{Hiệu năng ngôn ngữ:} Việc sử dụng Python thuần (không dùng thư viện tối ưu như NumPy) khiến thời gian thực thi của các thuật toán phức tạp như SVD tăng nhanh khi kích thước ma trận lớn ($n > 100$).
+    \item \textbf{Quản lý mã nguồn:} Trong quá trình làm việc nhóm, việc xảy ra xung đột (conflict) và tình trạng rẽ nhánh (divergent branches) trên Git gây mất thời gian trong việc gộp mã nguồn và đồng bộ hóa trình soạn thảo hệ thống.
+\end{itemize}
+
+\subsubsection{Bài học rút ra}
+\begin{itemize}
+    \item \textbf{Kỹ năng lập trình toán học:} Hiểu rõ tầm quan trọng của việc chọn phần tử chốt (pivoting) trong phép khử Gauss để giảm thiểu sai số máy tính và đảm bảo tính ổn định của thuật toán.
+    \item \textbf{Kỹ năng làm việc nhóm:} Thành thạo quy trình xử lý lỗi Git (Pull, Merge, Rebase) và cấu hình môi trường làm việc đồng bộ trên các hệ điều hành khác nhau.
+    \item \textbf{Kỹ năng trình bày khoa học:} Học được cách tích hợp hiệu quả giữa mã nguồn, kết quả phân tích thực nghiệm và trình bày báo cáo bằng \LaTeX{}/Markdown để tạo ra sản phẩm chuyên môn có tính thẩm mỹ và độ tin cậy cao.
+    \item \textbf{Xây dựng thương hiệu cá nhân:} Biết cách sử dụng GitHub Profile README để trình bày năng lực kỹ thuật (Tech Stack) và kết quả đóng góp dự án một cách trực quan.
+\end{itemize}
+
 \newpage
 \section{TÀI LIỆU THAM KHẢO}
 
